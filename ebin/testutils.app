@@ -4,7 +4,8 @@
 	{description, "Test utilities for Proximetry usage"},
 	{vsn, "1.0"},
 	{modules, [
-		smerl
+		smerl,
+		test_utils
 	]},
 	{registered, []},
 	{applications, [kernel, stdlib]}
