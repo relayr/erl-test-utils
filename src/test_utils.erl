@@ -32,12 +32,11 @@
 %%		LoopTimeout = integer()
 %%		Count = integer()
 %%		Result = any()
-%% @doc Call function with given arguments. If function exits with {error, RetValue}
-%%		result or throws an exception then call function again after LoopTimeout
-%%		milliseconds.
-%%		If above operations failed for Count times then throw an exception otherwise 
-%%		return RetValue.
-%%		Function 'Fun' should return {ok, RetValue} or {error, RetValue} tuple.
+%% @doc Call function with given arguments. If function throws an exception then call
+%%		function again after LoopTimeout milliseconds.
+%%		If above operations failed for Count times then throw an exception outside
+%%		the looper otherwise return Result.
+%%		Function 'Fun' should return Result or throw an exception.
 %% @end
 %%------------------------------------------------------------------------------
 state_sleep_looper(Fun, Args, LoopTimeout, Count) when is_function(Fun), is_list(Args), 
