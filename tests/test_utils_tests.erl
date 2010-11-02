@@ -29,54 +29,37 @@ state_sleep_looper_empty_arg_test() ->
 	
 	OkFun = fun() ->
 		inc_counter(ok_fun_calls),
-		{ok, fun_result}
+		ok_fun_result
 	end,
 	Result1 = test_utils:state_sleep_looper(OkFun, [], LoopTimeout, Count),
-	?assertEqual(fun_result, Result1),
+	?assertEqual(ok_fun_result, Result1),
 	% function exited after first iteration
 	?assertEqual(1, get_counter(ok_fun_calls)),
 	
 	ErrorFun = fun() ->
 		inc_counter(error_fun_calls),
-		{error, error_fun}
+		erlang:error(error_fun_result)
 	end,
 	try
 		test_utils:state_sleep_looper(ErrorFun, [], LoopTimeout, Count)
 	catch error:Exception ->
-		?assertEqual(error_fun, Exception)
+		?assertEqual(error_fun_result, Exception)
 	end,
 	% function exited after Count iterations
 	?assertEqual(Count, get_counter(error_fun_calls)).
-
-% Function should end either with {ok, RetValue} or {error, RetValue}
-state_sleep_looper_wrong_fun_test() ->
-	LoopTimeout = 1,
-	Count = 3,
-	
-	WrongFun = fun() ->
-		inc_counter(wrong_fun_calls),
-		wrong_return_value
-	end,
-	try
-		test_utils:state_sleep_looper(WrongFun, [], LoopTimeout, Count)
-	catch error:Exception ->
-		?assertEqual({case_clause, wrong_return_value}, Exception)
-	end,
-	% function exited after first iteration
-	?assertEqual(1, get_counter(wrong_fun_calls)).
 	
 % wrong parameters to fun
 state_sleep_looper_wrong_arity_test() ->
 	set_counter(function_calls, 0),
 	Fun = fun(arg1, arg2) ->
 		inc_counter(function_calls),
-		{ok, value}
+		value
 	end,
 
 	try
 		test_utils:state_sleep_looper(Fun, [arg1, arg2, arg3], 1, 3)
 	catch error:Exception ->
-		?assertEqual({error, {badarity, {Fun, [arg1, arg2, arg3]}}}, Exception)
+		?assertEqual({badarity, {Fun, [arg1, arg2, arg3]}}, Exception)
 	end,
 	% function was never called
 	?assertEqual(0, get_counter(function_calls)).
@@ -91,9 +74,9 @@ state_sleep_looper_args_test() ->
 			FunCalls = get_counter(function_calls),
 			case get_counter(exit_fun_after) of
 				FunCalls ->
-					{ok, value};
+					value;
 				_ ->
-					{error, exit_fun}
+					erlang:error(exit_fun)
 			end
 	end,
 	
@@ -116,6 +99,19 @@ state_sleep_looper_args_test() ->
 	% function exited after Count iterations
 	?assertEqual(Count, get_counter(function_calls)).
 
+wait_for_process_stopped_test() ->
+	PID = spawn(fun() -> receive stop -> ok end end),
+	true = register(proc, PID),
+	ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
+	?assertException(error, ErrorMsg, test_utils:wait_for_process_stopped(PID)),
+	?assertException(error, ErrorMsg, test_utils:wait_for_process_stopped(proc)),
+	proc ! stop,
+	ok = test_utils:wait_for_process_stopped(PID),
+	ok = test_utils:wait_for_process_stopped(proc),
+	
+	% not existing process
+	ok = test_utils:wait_for_process_stopped(proc2).
+	
 %% =============================================================================
 %% Property based tests
 %% =============================================================================

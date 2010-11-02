@@ -17,7 +17,8 @@
 %% Function exports
 %%------------------------------------------------------------------------------
 -export([
-	state_sleep_looper/4
+	state_sleep_looper/4,
+	wait_for_process_stopped/1
 ]).
 
 %% =============================================================================
@@ -41,17 +42,33 @@
 %%------------------------------------------------------------------------------
 state_sleep_looper(Fun, Args, LoopTimeout, Count) when is_function(Fun), is_list(Args), 
 		LoopTimeout > 0, Count > 0 ->
-	Result = try
+	try
 		erlang:apply(Fun, Args)
-	catch T:E ->
-		{error, {T, E}}
-	end,
-	case Result of
-		{ok, RetValue} ->
-			RetValue;
-		{error, RetValue} when Count =< 1 ->
-			erlang:error(RetValue);
-		{error, _RetValue} ->
-			timer:sleep(LoopTimeout),
-			state_sleep_looper(Fun, Args, LoopTimeout, Count - 1)
+	catch _Type:_Exception when Count > 1 ->
+		timer:sleep(LoopTimeout),
+		state_sleep_looper(Fun, Args, LoopTimeout, Count - 1)
 	end.
+
+%%------------------------------------------------------------------------------
+%% @spec wait_for_process_stopped(ProcessID) -> ok
+%% where
+%%		ProcessID = pid() | atom()
+%% @doc Wait for process with given ProcessID to be stopped.
+%% @end
+%%------------------------------------------------------------------------------
+wait_for_process_stopped(undefined) ->
+	ok;
+wait_for_process_stopped(ProcessName) when is_atom(ProcessName) ->
+	wait_for_process_stopped(whereis(ProcessName));
+wait_for_process_stopped(ProcessID) when is_pid(ProcessID) ->
+	state_sleep_looper(
+		fun(PID) ->
+			case erlang:process_info(PID, status) of
+				undefined ->
+					ok;
+				_ ->
+					ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
+					erlang:error(ErrorMsg)
+			end
+		end,
+		[ProcessID], 10, 100).
