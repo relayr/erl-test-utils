@@ -41,12 +41,20 @@
 %%------------------------------------------------------------------------------
 state_sleep_looper(Fun, Args, LoopTimeout, Count) when is_function(Fun), is_list(Args), 
 		LoopTimeout > 0, Count > 0 ->
+	state_sleep_looper_do(Fun, Args, LoopTimeout, Count, undefined).
+
+	
+state_sleep_looper_do(Fun, Args, LoopTimeout, Count, Exception) when is_function(Fun), is_list(Args), 
+		LoopTimeout > 0, Count > 0 ->
 	try
 		erlang:apply(Fun, Args)
-	catch _Type:_Exception when Count > 1 ->
-		timer:sleep(LoopTimeout),
-		state_sleep_looper(Fun, Args, LoopTimeout, Count - 1)
-	end.
+	catch 
+		error:{Assertion, Info} when Count > 1, (Assertion == assertion_failed) or (Assertion == assertEqual_failed) or (Assertion == assertMatch_failed) or (Assertion == assertException_failed) ->
+			timer:sleep(LoopTimeout),
+			state_sleep_looper_do(Fun, Args, LoopTimeout, Count - 1, {Assertion, Info})
+	end;
+state_sleep_looper_do(Fun, Args, _LoopTimeout, _Count, Exception) when is_function(Fun), is_list(Args) ->
+	erlang:error(Exception).
 
 %%------------------------------------------------------------------------------
 %% @spec wait_for_process_stopped(ProcessID) -> ok
@@ -67,7 +75,7 @@ wait_for_process_stopped(ProcessID) when is_pid(ProcessID) ->
 					ok;
 				_ ->
 					ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
-					erlang:error(ErrorMsg)
+					erlang:error({assertion_failed, ErrorMsg})
 			end
 		end,
 		[ProcessID], 10, 100).
