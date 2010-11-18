@@ -18,7 +18,8 @@
 %%------------------------------------------------------------------------------
 -export([
 	state_sleep_looper/4,
-	wait_for_process_stopped/1
+	wait_for_process_stopped/1,
+	recompile_module/2
 ]).
 
 %% =============================================================================
@@ -72,3 +73,26 @@ wait_for_process_stopped(ProcessID) when is_pid(ProcessID) ->
 			end
 		end,
 		[ProcessID], 10, 100).
+
+%%------------------------------------------------------------------------------
+%% @spec recompile_module(Module, FunctionDefs) -> ok
+%% where
+%%		Module = atom()
+%%		FunctionDefs = [list()]
+%% @doc Replace functions definitions in a module.
+%% @end
+%%------------------------------------------------------------------------------
+recompile_module(Module, FunctionDefs) when is_atom(Module), is_list(FunctionDefs) ->
+	{Module, _Bin, ModuleFileName} = code:get_object_code(Module),
+	ModuleDir = filename:dirname(ModuleFileName),
+	ok = code:unstick_dir(ModuleDir),
+	{ok, ModMetaData} = smerl:for_module(Module),
+	{ok, NewModMetaData} = recompile_module(Module, ModMetaData, FunctionDefs),
+	ok = smerl:compile(NewModMetaData),
+	ok = code:stick_dir(ModuleDir).
+
+recompile_module(_Module, ModMetaData, []) ->
+	{ok, ModMetaData};
+recompile_module(Module, ModMetaData, [FunctionDef | RestOfFunctionDefs]) ->
+	{ok, NewModMetaData} = smerl:replace_func(ModMetaData, FunctionDef),
+	recompile_module(Module, NewModMetaData, RestOfFunctionDefs).
