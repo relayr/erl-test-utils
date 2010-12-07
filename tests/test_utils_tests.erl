@@ -19,11 +19,13 @@
 -include_lib("eqc/include/eqc.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -compile(export_all).
+-compile({parse_transform, test_parse_transform}).
 
 %% =============================================================================
 %% Tests
 %% =============================================================================
-state_sleep_looper_empty_arg_test() ->
+-test_function([]).
+state_sleep_looper_empty_args() ->
 	LoopTimeout = 1,
 	Count = 3,
 	
@@ -48,8 +50,9 @@ state_sleep_looper_empty_arg_test() ->
 	% function exited after Count iterations
 	?assertEqual(1, get_counter(error_fun_calls)).
 	
+-test_function([]).
 % wrong parameters to fun
-state_sleep_looper_wrong_arity_test() ->
+state_sleep_looper_wrong_arity() ->
 	set_counter(function_calls, 0),
 	Fun = fun(arg1, arg2) ->
 		inc_counter(function_calls),
@@ -64,7 +67,8 @@ state_sleep_looper_wrong_arity_test() ->
 	% function was never called
 	?assertEqual(0, get_counter(function_calls)).
 
-state_sleep_looper_args_test() ->
+-test_function([]).
+state_sleep_looper_args() ->
 	LoopTimeout = 1,
 	Count = 3,
 	ExpExc = {assertion_failed, info},
@@ -99,7 +103,8 @@ state_sleep_looper_args_test() ->
 	% function exited after Count iterations
 	?assertEqual(Count, get_counter(function_calls)).
 
-wait_for_process_stopped_test() ->
+-test_function([]).
+wait_for_process_stopped() ->
 	PID = spawn(fun() -> receive stop -> ok end end),
 	true = register(proc, PID),
 	ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
