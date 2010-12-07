@@ -11,24 +11,24 @@
 -export([parse_transform/2]).
 
 parse_transform(Tree, _Options) ->
-    transform_tree(Tree, [], [], []).
+    transform_tree(Tree, [], false).
 
-transform_tree([{attribute, _, module, Name} = A | Rest], Tree, [], []) ->
+transform_tree([{attribute, _, module, Name} = A | Rest], Tree, IsATestFunction) ->
     put(module_name, Name),
-    transform_tree(Rest, [A | Tree], [], []);
-transform_tree([{attribute, _, test_function, Elem} | Rest], Tree, Before, After) ->
-    transform_tree(Rest, Tree, [Elem | Before], After);
-transform_tree([F | Rest], Tree, [], []) ->
-    transform_tree(Rest, [F | Tree], [], []);
-transform_tree([{function, _, _, _, _} = F | Rest], Tree, Before, After) ->
-    NewF = transform_function(F, lists:reverse(Before), lists:reverse(After)),
-    transform_tree(Rest, [NewF | Tree], [], []);
-transform_tree([Element | Rest], Tree, Before, After) ->
-    transform_tree(Rest, [Element | Tree], Before, After);
-transform_tree([], Tree, _, _) ->
+    transform_tree(Rest, [A | Tree], IsATestFunction);
+transform_tree([{attribute, _, test_function, _Elem} | Rest], Tree, _IsATestFunction) ->
+    transform_tree(Rest, Tree, true);
+transform_tree([F | Rest], Tree, false) ->
+    transform_tree(Rest, [F | Tree], false);
+transform_tree([{function, _, _, _, _} = F | Rest], Tree, true) ->
+    NewF = transform_function(F),
+    transform_tree(Rest, [NewF | Tree], false);
+transform_tree([Element | Rest], Tree, IsATestFunction) ->
+    transform_tree(Rest, [Element | Tree], IsATestFunction);
+transform_tree([], Tree, _) ->
     lists:reverse(Tree).
 
-transform_function({function, Line, FunName, Arity, Clauses}, _Before, _After) ->
+transform_function({function, Line, FunName, Arity, Clauses}) ->
     put(function_name, FunName),
     put(function_arity, Arity),
 	CurFunName = atom_to_list(FunName),
