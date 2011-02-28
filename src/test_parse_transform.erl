@@ -63,14 +63,14 @@ transform_clause([], _FunName, Clauses) ->
 
 transform_clause_before({clause, L, CArgs, Guards, Body}, FunName) when is_atom(FunName) ->
 	ModuleName = get(module_name),
-    FirstCall = {call,L,{remote,L,{atom,L,log4erl},{atom,L,info}},
-		[{string,L,"BEGIN ~p:~p"},{cons,L,{atom,L,ModuleName},{cons,L,{atom,L,FunName},{nil,L}}}]},
+    FirstCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log}},
+		[{integer,L,4},{string,L,"BEGIN ~p:~p"},{cons,L,{atom,L,ModuleName},{cons,L,{atom,L,FunName},{nil,L}}}]},
 	NewBody = [FirstCall | Body],
 	{clause, L, CArgs, Guards, NewBody}.
 
 transform_clause_after({clause, L, CArgs, Guards, Body}, FunName) when is_atom(FunName) ->
 	ModuleName = get(module_name),
-    LastCall = {call,L,{remote,L,{atom,L,log4erl},{atom,L,info}},
-		[{string,L,"END ~p:~p"},{cons,L,{atom,L,ModuleName},{cons,L,{atom,L,FunName},{nil,L}}}]},
+    LastCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log}},
+		[{integer,L,4},{string,L,"END ~p:~p"},{cons,L,{atom,L,ModuleName},{cons,L,{atom,L,FunName},{nil,L}}}]},
 	NewBody = Body ++ [LastCall],
 	{clause, L, CArgs, Guards, NewBody}.
