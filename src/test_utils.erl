@@ -88,7 +88,7 @@ recompile_module(Module, FunctionDefs) when is_atom(Module), is_list(FunctionDef
 	ok = code:unstick_dir(ModuleDir),
 	{ok, ModMetaData} = smerl:for_module(Module),
 	{ok, NewModMetaData} = recompile_module(Module, ModMetaData, FunctionDefs),
-	ok = smerl:compile(NewModMetaData, [export_all]),
+	ok = smerl:compile(NewModMetaData, [export_all, {d,'TEST'}]),
 	ok = code:stick_dir(ModuleDir).
 
 recompile_module(_Module, ModMetaData, []) ->
