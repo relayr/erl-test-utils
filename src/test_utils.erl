@@ -19,7 +19,8 @@
 -export([
 	state_sleep_looper/4,
 	wait_for_process_stopped/1,
-	recompile_module/2
+	recompile_module/2,
+	stop_processes/1
 ]).
 
 %% =============================================================================
@@ -88,7 +89,9 @@ recompile_module(Module, FunctionDefs) when is_atom(Module), is_list(FunctionDef
 	ok = code:unstick_dir(ModuleDir),
 	{ok, ModMetaData} = smerl:for_module(Module),
 	{ok, NewModMetaData} = recompile_module(Module, ModMetaData, FunctionDefs),
-	ok = smerl:compile(NewModMetaData, [export_all, {d,'TEST'}]),
+	ok = smerl:compile(NewModMetaData, [export_all
+									   %, {d,'TEST'} - doesn't work
+									   ]),
 	ok = code:stick_dir(ModuleDir).
 
 recompile_module(_Module, ModMetaData, []) ->
@@ -96,3 +99,28 @@ recompile_module(_Module, ModMetaData, []) ->
 recompile_module(Module, ModMetaData, [FunctionDef | RestOfFunctionDefs]) ->
 	{ok, NewModMetaData} = smerl:replace_func(ModMetaData, FunctionDef),
 	recompile_module(Module, NewModMetaData, RestOfFunctionDefs).
+
+% @doc Stops processes in list and waits for their termination. The list can contain names or pids.
+-spec stop_processes(Processes :: [atom() | pid()]) -> ok.
+stop_processes(Processes) when is_list(Processes) ->
+	lists:foreach(
+	  fun(P) ->
+			stop_process(P)
+	  end, Processes).
+
+stop_process(Name) when is_atom(Name) ->
+	case whereis(Name) of
+		undefined ->
+			ok;
+		Pid ->
+			stop_process(Pid)
+	end;
+stop_process(Pid) when is_pid(Pid) ->
+	try
+		erlang:exit(Pid, kill)
+	catch 
+		_Class:_Reason ->
+			ok
+	end,
+	wait_for_process_stopped(Pid),
+	ok.
