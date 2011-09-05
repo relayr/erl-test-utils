@@ -21,5 +21,6 @@
 % QuickCheck generators
 -define(EQC_ATOM_GEN, ?LET(Name, non_empty(list(choose($a,$z))), list_to_atom(Name))).
 -define(EQC_LIST_GEN, ?LET(Name, non_empty(list(choose($a,$z))))).
+-define(EQC_BYTE_GEN, choose(0,255)).
 
 -endif.
