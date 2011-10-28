@@ -22,5 +22,7 @@
 -define(EQC_ATOM_GEN, ?LET(Name, non_empty(list(choose($a,$z))), list_to_atom(Name))).
 -define(EQC_LIST_GEN, ?LET(Name, non_empty(list(choose($a,$z))))).
 -define(EQC_BYTE_GEN, choose(0,255)).
+-define(EQC_USHORT_GEN, choose(0,65535)).
+-define(EQC_ULONG_GEN, choose(0,18446744073709551615)).
 
 -endif.
