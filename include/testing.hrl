@@ -24,5 +24,11 @@
 -define(EQC_BYTE_GEN, choose(0,255)).
 -define(EQC_USHORT_GEN, choose(0,65535)).
 -define(EQC_ULONG_GEN, choose(0,18446744073709551615)).
+-define(EQC_BIN_GEN(MaxSize),
+		?LET(Size,
+			 choose(0, MaxSize),
+			 ?LET(List,
+				  vector(Size, ?EQC_BYTE_GEN),
+				  list_to_binary(List)))).
 
 -endif.
