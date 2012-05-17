@@ -20,7 +20,9 @@
 	state_sleep_looper/4,
 	wait_for_process_stopped/1,
 	recompile_module/2,
-	stop_processes/1
+	stop_processes/1,
+    meck_module/2,
+    unmeck_modules/0
 ]).
 
 %% =============================================================================
@@ -124,3 +126,45 @@ stop_process(Pid) when is_pid(Pid) ->
 	end,
 	wait_for_process_stopped(Pid),
 	ok.
+
+-spec meck_module(Module :: atom(), Funs :: [{atom(), any()} | {atom(), non_neg_integer(), any()}]) -> ok.
+meck_module(Module, Funs) ->
+    ok = meck:new(Module, [unstick, passthrough]),
+    lists:foreach(
+           fun(FunctionSpec) -> 
+                   ok = meck_function(Module, FunctionSpec)
+           end, Funs).
+
+meck_function(Module, {FunctionName, Fun}) when is_function(Fun) ->
+    meck:expect(Module, FunctionName, Fun);
+meck_function(Module, {FunctionName, FunResult}) ->
+    Arity = get_function_arity(Module, FunctionName),
+    Fun = create_fun_with_arity(Arity, FunResult),                                           
+    meck:expect(Module, FunctionName, Fun).
+
+get_function_arity(Module, FunctionName) ->
+    ModuleInfo = Module:module_info(functions),
+    {FunctionName, Arity} = lists:keyfind(FunctionName, 1, ModuleInfo),
+    Arity.
+
+create_fun_with_arity(0, FunResult) ->
+    fun() -> FunResult end;
+create_fun_with_arity(1, FunResult) ->
+    fun(_) -> FunResult end;
+create_fun_with_arity(2, FunResult) ->
+    fun(_, _) -> FunResult end;
+create_fun_with_arity(3, FunResult) ->
+    fun(_, _, _) -> FunResult end;
+create_fun_with_arity(4, FunResult) ->
+    fun(_, _, _, _) -> FunResult end;
+create_fun_with_arity(5, FunResult) ->
+    fun(_, _, _, _, _) -> FunResult end;
+create_fun_with_arity(6, FunResult) ->
+    fun(_, _, _, _, _, _) -> FunResult end;
+create_fun_with_arity(7, FunResult) ->
+    fun(_, _, _, _, _, _, _) -> FunResult end.
+
+unmeck_modules()  ->
+    meck:unload(),
+    ok.
+

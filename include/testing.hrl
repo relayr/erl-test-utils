@@ -12,6 +12,8 @@
 		test_utils:wait_for_process_stopped(ProcessID)).
 -define(RECOMPILE(Module, FunctionDefs),
 		test_utils:recompile_module(Module, FunctionDefs)).
+-define(MECK(Module, Funs), test_utils:meck_module(Module, Funs)).
+-define(UNMECK, test_utils:unmeck_modules()).
 
 -define(BEFORE_TEST, {current_function, {Module, Function, _Arity}} = erlang:process_info(self(), current_function),
 	default_logger:log(4, "BEGIN ~p:~p", [Module, Function])).
