@@ -115,6 +115,7 @@ stop_process(Name) when is_atom(Name) ->
 		undefined ->
 			ok;
 		Pid ->
+			true = erlang:unregister(Name),
 			stop_process(Pid)
 	end;
 stop_process(Pid) when is_pid(Pid) ->
