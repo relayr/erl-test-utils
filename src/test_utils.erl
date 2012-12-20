@@ -22,7 +22,9 @@
 	recompile_module/2,
 	stop_processes/1,
     meck_module/2,
-    unmeck_modules/0
+    unmeck_modules/0,
+	meck_call_args/2,
+	meck_last_call_args/2
 ]).
 
 %% =============================================================================
@@ -178,3 +180,16 @@ unmeck_modules()  ->
     meck:unload(),
     ok.
 
+meck_call_args(Module, Function) ->
+	History = meck:history(Module),
+	Args = [Args || {_Pid, {Mod, Func, Args}, _Result} <- History, Func =:= Function, Mod =:= Module],
+	{ok, Args}.
+
+meck_last_call_args(Module, Function) ->
+	{ok, CallArgs} = meck_call_args(Module, Function),
+	if CallArgs =:= [] ->
+		{ok, []};
+	true ->
+		LastCallArgs = lists:last(CallArgs),
+		{ok, [LastCallArgs]}
+	end.
