@@ -21,8 +21,10 @@
 	default_logger:log(4, "END ~p:~p", [Module, Function])).
 
 % QuickCheck generators
--define(EQC_ATOM_GEN, ?LET(Name, non_empty(list(choose($a,$z))), list_to_atom(Name))).
--define(EQC_LIST_GEN, ?LET(Name, non_empty(list(choose($a,$z))))).
+-define(EQC_STRING_GEN, non_empty(list(choose($a,$z)))).
+-define(EQC_ATOM_GEN, ?LET(Name, ?EQC_STRING_GEN, list_to_atom(Name))).
+-define(EQC_LIST_GEN, ?LET(Name, non_empty(list(choose(0,255))), Name)).
+-define(EQC_NESTED_LIST_GEN, ?LET(List, ?EQC_LIST_GEN, List)).
 -define(EQC_BYTE_GEN, choose(0,255)).
 -define(EQC_USHORT_GEN, choose(0,65535)).
 -define(EQC_ULONG_GEN, choose(0,18446744073709551615)).
