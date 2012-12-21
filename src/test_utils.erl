@@ -24,7 +24,8 @@
     meck_module/2,
     unmeck_modules/0,
 	meck_call_args/2,
-	meck_last_call_args/2
+	meck_last_call_args/2,
+	meck_assert_called_once/3
 ]).
 
 %% =============================================================================
@@ -193,3 +194,8 @@ meck_last_call_args(Module, Function) ->
 		LastCallArgs = lists:last(CallArgs),
 		{ok, [LastCallArgs]}
 	end.
+
+-spec meck_assert_called_once(Module :: atom(), Function :: atom(), Args :: list()) -> ok.
+meck_assert_called_once(Module, Function, Args) ->
+	?assertEqual(1, meck:num_calls(Module, Function, Args)),
+	ok.
