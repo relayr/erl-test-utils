@@ -27,6 +27,7 @@
 	meck_last_call_args/2,
 	meck_assert_called_once/3,
 	meck_assert_not_called/3,
+	meck_assert_not_called/2,
 	meck_num_calls/2
 ]).
 
@@ -209,4 +210,9 @@ meck_assert_called_once(Module, Function, Args) ->
 -spec meck_assert_not_called(Module :: atom(), Function :: atom(), Args :: list()) -> ok.
 meck_assert_not_called(Module, Function, Args) ->
 	?assertEqual(0, meck:num_calls(Module, Function, Args)),
+	ok.
+
+-spec meck_assert_not_called(Module :: atom(), Function :: atom()) -> ok.
+meck_assert_not_called(Module, Function) ->
+	?assertEqual(0, meck_num_calls(Module, Function)),
 	ok.
