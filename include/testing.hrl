@@ -15,11 +15,6 @@
 -define(MECK(Module, Funs), test_utils:meck_module(Module, Funs)).
 -define(UNMECK, test_utils:unmeck_modules()).
 
--define(BEFORE_TEST, {current_function, {Module, Function, _Arity}} = erlang:process_info(self(), current_function),
-	default_logger:log(4, "BEGIN ~p:~p", [Module, Function])).
--define(AFTER_TEST, {current_function, {Module, Function, _Arity}} = erlang:process_info(self(), current_function),
-	default_logger:log(4, "END ~p:~p", [Module, Function])).
-
 % QuickCheck generators
 -define(EQC_STRING_GEN, non_empty(list(choose($a,$z)))).
 -define(EQC_ATOM_GEN, ?LET(Name, ?EQC_STRING_GEN, list_to_atom(Name))).

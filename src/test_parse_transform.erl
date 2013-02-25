@@ -13,8 +13,14 @@
 parse_transform(Tree, _Options) ->
     transform_tree(Tree, [], false).
 
-transform_tree([{attribute, _, module, Name} = A | Rest], Tree, IsATestFunction) ->
-    put(module_name, Name),
+transform_tree([{attribute, _, module, [SubDirectoryAtom, ModuleNameAtom]} = A | Rest], Tree, IsATestFunction)
+  		when is_atom(SubDirectoryAtom), is_atom(ModuleNameAtom) ->
+	ModuleName = atom_to_list(SubDirectoryAtom) ++ "." ++ atom_to_list(ModuleNameAtom),
+    put(module_name, ModuleName),
+    transform_tree(Rest, [A | Tree], IsATestFunction);
+transform_tree([{attribute, _, module, ModuleNameAtom} = A | Rest], Tree, IsATestFunction) when is_atom(ModuleNameAtom) ->
+	ModuleName = atom_to_list(ModuleNameAtom),
+    put(module_name, ModuleName),
     transform_tree(Rest, [A | Tree], IsATestFunction);
 transform_tree([{attribute, _, test_function, _Elem} | Rest], Tree, _IsATestFunction) ->
     transform_tree(Rest, Tree, true);
@@ -28,49 +34,150 @@ transform_tree([Element | Rest], Tree, IsATestFunction) ->
 transform_tree([], Tree, _) ->
     lists:reverse(Tree).
 
-transform_function({function, Line, FunName, Arity, Clauses}) ->
+transform_function({function, Line, FunNameAtom, Arity, [Clause]}) ->
+	ModuleName = get(module_name),
+	FunName = atom_to_list(FunNameAtom),
     put(function_name, FunName),
     put(function_arity, Arity),
-	CurFunName = atom_to_list(FunName),
 	% append '_test' to the function name if not already appended
 	{IsATestGenerator, NewFunName} = 
-		case re:run(CurFunName, "_test$", []) of
+		case re:run(FunName, "_test$", []) of
             nomatch ->
-				case re:run(CurFunName, "_test_$", []) of
+				case re:run(FunName, "_test_$", []) of
 					nomatch ->
-						{false, CurFunName ++ "_test"};
+						{false, FunName ++ "_test"};
 					_ ->
-						% test generators shouldn't have function body changed
-						{true, CurFunName}
+						{true, FunName}
 				end;
 			_ ->
-				{false, CurFunName}
+				{false, FunName}
 		end,
-    NewClauses = 
+    NewClause = 
 		if IsATestGenerator ->
-			Clauses;
+ 			transform_test_suite_clause(Clause, ModuleName, FunName);
 		true ->
-			transform_clause(Clauses, FunName, [])
+			transform_test_clause(Clause, ModuleName, FunName, undefined)
 		end,
-    {function, Line, list_to_atom(NewFunName), Arity, NewClauses}.
+    {function, Line, list_to_atom(NewFunName), Arity, [NewClause]}.
 
-transform_clause([OrgClause | Rest], FunName, Clauses) ->
-    BeforeClause = transform_clause_before(OrgClause, FunName),
-    AfterClause = transform_clause_after(BeforeClause, FunName),
-    transform_clause(Rest, FunName, [AfterClause | Clauses]);
-transform_clause([], _FunName, Clauses) ->
-    lists:reverse(Clauses).
+transform_test_clause(Clause, ModuleName, FunName, TestName) ->
+    BeforeClause = transform_clause_before("BEGIN", Clause, ModuleName, FunName, TestName),
+    transform_clause_after("END", BeforeClause, ModuleName, FunName, TestName).
 
-transform_clause_before({clause, L, CArgs, Guards, Body}, FunName) when is_atom(FunName) ->
-	ModuleName = get(module_name),
-    FirstCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log}},
-		[{integer,L,4},{string,L,"BEGIN ~p:~p"},{cons,L,{atom,L,ModuleName},{cons,L,{atom,L,FunName},{nil,L}}}]},
+transform_test_suite_clause({clause, L1, CArgs, Guards, FunctionClauses}, ModuleName, FunName) ->
+	% get last element in tuple - test suite
+	case lists:split(length(FunctionClauses) - 1, FunctionClauses) of
+		{FunctionClausesFront, [{tuple, L2,
+								 [{atom, L3, TestSuiteGenerator = inparallel},
+								  TestSuiteFunctionClauses]}]} ->
+ 			TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
+																				  ModuleName, FunName, 1),
+			{clause, L1, CArgs, Guards, FunctionClausesFront ++ 
+										[{tuple, L2, [{atom, L3, TestSuiteGenerator},
+													  TransformedTestSuiteFunctionClauses]}]};
+		{FunctionClausesFront, [{tuple, L2,
+								 [{atom, L3, TestSuiteGenerator},
+								  {'fun', L4, {clauses, [TestSuiteBeforeClause]}},
+								  {'fun', L5, {clauses, [TestSuiteAfterClause]}},
+								  TestSuiteFunctionClauses]}]} ->
+			TransformedTestSuiteBeforeClause = transform_clause_before("BEFORE", TestSuiteBeforeClause, ModuleName, FunName, undefined),
+			TransformedTestSuiteAfterClause = transform_clause_after("AFTER", TestSuiteAfterClause, ModuleName, FunName, undefined),
+ 			TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
+																				  ModuleName, FunName, 1),
+			{clause, L1, CArgs, Guards, FunctionClausesFront ++ 
+										[{tuple, L2, [{atom, L3, TestSuiteGenerator},
+													  {'fun', L4, {clauses, [TransformedTestSuiteBeforeClause]}},
+													  {'fun', L5, {clauses, [TransformedTestSuiteAfterClause]}},
+													  TransformedTestSuiteFunctionClauses]}]};
+		{FunctionClausesFront, FunctionClausesEnd} ->
+			{clause, L1, CArgs, Guards, FunctionClausesFront ++ FunctionClausesEnd}
+	end.
+
+transform_test_function_meta_data(ModuleName, FunName, TestName, {'fun', L, {clauses, [TestFunClause]}}) ->
+	TransformedTestFunClause = transform_test_clause(TestFunClause, ModuleName, FunName, TestName),
+	{'fun', L, {clauses, [TransformedTestFunClause]}};
+transform_test_function_meta_data(ModuleName, FunName, TestName, {'fun', L, {function, TestFunName, 0}}) ->
+	TestFunClause = {clause, L, [], [], [{call,L,{atom,L,TestFunName},[]}]},
+	TransformedTestFunClause = transform_test_clause(TestFunClause, ModuleName, FunName, TestName),
+	{'fun', L, {clauses, [TransformedTestFunClause]}}.
+
+transform_test_functions_clause(_TestSuiteGenerator, {nil, L}, _ModuleName, _FunName, _TestNumber) ->
+	{nil, L};
+transform_test_functions_clause(TestSuiteGenerator = foreachx, {cons, L1,
+																TestFunMetaData,
+																NextTestFunctionsClause},
+								ModuleName, FunName, TestNumber) ->
+	% TODO: implement
+	TransformedNextTestFunctionsClause = transform_test_functions_clause(TestSuiteGenerator, NextTestFunctionsClause,
+																		 ModuleName, FunName, TestNumber + 1),
+	{cons, L1, TestFunMetaData, TransformedNextTestFunctionsClause};
+% [{"Test name", fun() -> test() end | fun test/0}]
+transform_test_functions_clause(TestSuiteGenerator, {cons, L1,
+													 {tuple, L2, [TestName, {'fun', _, _} = FunMetaData]},
+													 NextTestFunctionsClause},
+								ModuleName, FunName, TestNumber) ->
+	TransformedFunMetaData = transform_test_function_meta_data(ModuleName, FunName, TestName, FunMetaData),
+	TransformedNextTestFunctionsClause = transform_test_functions_clause(TestSuiteGenerator, NextTestFunctionsClause,
+																		 ModuleName, FunName, TestNumber + 1),
+	{cons, L1, {tuple, L2, [TestName, TransformedFunMetaData]}, TransformedNextTestFunctionsClause};
+% [fun() -> test() end | fun test/0]
+transform_test_functions_clause(TestSuiteGenerator, {cons, L1,
+													{'fun', _, _} = FunMetaData, NextTestFunctionsClause},
+								ModuleName, FunName, TestNumber) ->
+	TransformedFunMetaData = transform_test_function_meta_data(ModuleName, FunName, test_name(L1, TestNumber), FunMetaData),
+	TransformedNextTestFunctionsClause = transform_test_functions_clause(TestSuiteGenerator, NextTestFunctionsClause,
+																		 ModuleName, FunName, TestNumber + 1),
+	{cons, L1, TransformedFunMetaData, TransformedNextTestFunctionsClause};
+% list comprehension
+% [{"Test name", fun() -> test() end | fun test/0}]
+transform_test_functions_clause(_TestSuiteGenerator, {lc, L1, {tuple, L2, [TestName, {'fun', _, _} = FunMetaData]}, LCInput},
+								ModuleName, FunName, _TestNumber) ->
+ 	TransformedFunMetaData = transform_test_function_meta_data(ModuleName, FunName, TestName, FunMetaData),
+	{lc, L1, {tuple, L2, [TestName, TransformedFunMetaData]}, LCInput}.
+
+transform_clause_before(BeforeString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, undefined) when is_list(ModuleName),
+																							   is_list(FunName) ->
+    FirstCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log_once}},
+		[{integer,L,4},{string,L, "~n======================================== " ++ BeforeString ++
+							 " ~s:~s ========================================"},{cons,L,{string,L,ModuleName},
+												  {cons,L,{string,L,FunName},
+												  {nil,L}}},
+		 {atom,L,false}]},
+	NewBody = [FirstCall | Body],
+	{clause, L, CArgs, Guards, NewBody};
+transform_clause_before(BeforeString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, TestName) when is_list(ModuleName),
+																											is_list(FunName) ->
+    FirstCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log_once}},
+		[{integer,L,4},{string,L, "~n======================================== " ++ BeforeString ++
+						" ~s:~s (~s) ========================================"},{cons,L,{string,L,ModuleName},
+													 {cons,L,{string,L,FunName},
+													 {cons,L,TestName,
+													 {nil,L}}}},
+		 {atom,L,false}]},
 	NewBody = [FirstCall | Body],
 	{clause, L, CArgs, Guards, NewBody}.
 
-transform_clause_after({clause, L, CArgs, Guards, Body}, FunName) when is_atom(FunName) ->
-	ModuleName = get(module_name),
-    LastCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log}},
-		[{integer,L,4},{string,L,"END ~p:~p"},{cons,L,{atom,L,ModuleName},{cons,L,{atom,L,FunName},{nil,L}}}]},
+transform_clause_after(AfterString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, undefined) when is_list(ModuleName),
+																										   is_list(FunName) ->
+    LastCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log_once}},
+		[{integer,L,4},{string,L, "======================================== " ++ AfterString ++
+						   " ~s:~s ========================================~n"},{cons,L,{string,L,ModuleName},
+												{cons,L,{string,L,FunName},
+												{nil,L}}},
+		 {atom,L,false}]},
+	NewBody = Body ++ [LastCall],
+	{clause, L, CArgs, Guards, NewBody};
+transform_clause_after(AfterString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, TestName) when is_list(ModuleName),
+																										  is_list(FunName) ->
+    LastCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log_once}},
+		[{integer,L,4},{string,L, "======================================== " ++ AfterString ++
+					  " ~s:~s (~s) ========================================~n"},{cons,L,{string,L,ModuleName},
+													 {cons,L,{string,L,FunName},
+													 {cons,L,TestName,
+													 {nil,L}}}},
+		 {atom,L,false}]},
 	NewBody = Body ++ [LastCall],
 	{clause, L, CArgs, Guards, NewBody}.
+
+test_name(L, TestNumber) ->
+	{string, L, "Test " ++ integer_to_list(TestNumber)}.
