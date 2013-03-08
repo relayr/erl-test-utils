@@ -136,16 +136,21 @@ stop_process(Pid) when is_pid(Pid) ->
 
 -spec meck_module(Module :: atom(), Funs :: [{atom(), any()} | {atom(), non_neg_integer(), any()}]) -> ok.
 meck_module(Module, Funs) ->
-	DefaultOptions = [passthrough],
+	DefaultOptions = [passthrough, non_strict],
 	Options =
 		try
 			_ = Module:module_info(),
 			[unstick] ++ DefaultOptions
 		catch error:undef ->
+			% module doesn't exist, try without unstick option
 			DefaultOptions
 		end,
-    ok = meck:new(Module, Options),
-			% module doesn't exist, try without unstick option
+    ok =
+		try
+			meck:new(Module, Options)
+		catch error:{already_started, _} ->
+			ok
+		end,
     lists:foreach(
            fun(FunctionSpec) -> 
                    ok = meck_function(Module, FunctionSpec)
