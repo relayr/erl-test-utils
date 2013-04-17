@@ -22,6 +22,7 @@
 	recompile_module/2,
 	stop_processes/1,
     meck_module/2,
+	meck_loop_module/2,
     unmeck_modules/0,
 	meck_call_args/2,
 	meck_last_call_args/2,
@@ -134,8 +135,15 @@ stop_process(Pid) when is_pid(Pid) ->
 	wait_for_process_stopped(Pid),
 	ok.
 
--spec meck_module(Module :: atom(), Funs :: [{atom(), any()} | {atom(), non_neg_integer(), any()}]) -> ok.
+-spec meck_module(Module :: atom(), Funs :: [{atom(), any()}, ...]) -> ok.
 meck_module(Module, Funs) ->
+	ok = meck_module_init(Module),
+    lists:foreach(
+           fun(FunctionSpec) -> 
+                   ok = meck_function(Module, FunctionSpec)
+           end, Funs).
+
+meck_module_init(Module) ->
 	DefaultOptions = [passthrough, non_strict],
 	Options =
 		try
@@ -145,15 +153,19 @@ meck_module(Module, Funs) ->
 			% module doesn't exist, try without unstick option
 			DefaultOptions
 		end,
-    ok =
-		try
-			meck:new(Module, Options)
-		catch error:{already_started, _} ->
-			ok
-		end,
+    try
+		meck:new(Module, Options)
+	catch error:{already_started, _} ->
+		ok
+	end.
+	
+-spec meck_loop_module(Module :: atom(), Funs :: [{atom(), list()}, ...]) -> ok.
+meck_loop_module(Module, Funs) ->
+	ok = meck_module_init(Module),
     lists:foreach(
-           fun(FunctionSpec) -> 
-                   ok = meck_function(Module, FunctionSpec)
+           fun({FunctionName, FunResults}) -> 
+				   Arity = get_function_arity(Module, FunctionName),
+                   ok = meck:loop(Module, FunctionName, Arity, FunResults)
            end, Funs).
 
 meck_function(Module, {FunctionName, Fun}) when is_function(Fun) ->

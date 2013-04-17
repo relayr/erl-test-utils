@@ -13,6 +13,7 @@
 -define(RECOMPILE(Module, FunctionDefs),
 		test_utils:recompile_module(Module, FunctionDefs)).
 -define(MECK(Module, Funs), test_utils:meck_module(Module, Funs)).
+-define(MECK_LOOP(Module, Funs), test_utils:meck_loop_module(Module, Funs)).
 -define(UNMECK, test_utils:unmeck_modules()).
 
 % QuickCheck generators
