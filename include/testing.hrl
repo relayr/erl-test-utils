@@ -20,7 +20,8 @@
 -define(EQC_STRING_GEN, non_empty(list(choose($a,$z)))).
 -define(EQC_ATOM_GEN, ?LET(Name, ?EQC_STRING_GEN, list_to_atom(Name))).
 -define(EQC_LIST_GEN, ?LET(Name, non_empty(list(choose(0,255))), Name)).
--define(EQC_UNIQUE_LIST_GEN(Gen), shuffle(?LET(Values, list(Gen), lists:usort(Values)))).
+-define(EQC_SORTED_UNIQUE_LIST_GEN(Gen), ?LET(Values, list(Gen), lists:usort(Values))).
+-define(EQC_UNIQUE_LIST_GEN(Gen), shuffle(?EQC_SORTED_UNIQUE_LIST_GEN(Gen))).
 -define(EQC_NESTED_LIST_GEN, ?LET(List, ?EQC_LIST_GEN, List)).
 -define(EQC_BYTE_GEN, choose(0,255)).
 -define(EQC_USHORT_GEN, choose(0,65535)).
