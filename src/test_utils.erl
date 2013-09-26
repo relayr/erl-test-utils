@@ -165,46 +165,25 @@ meck_loop_module(Module, Funs) ->
 	lists:foreach(
 	  fun({FunctionName, FunResults}) -> 
 			  Arities = get_function_arities(Module, FunctionName),
-			  lists:foreach(
-				fun(Arity) ->
-						ok = meck:loop(Module, FunctionName, Arity, FunResults)
-				end, Arities)
+			  _ = [ok = meck:loop(Module, FunctionName, Arity, FunResults) || Arity <- Arities]
 	  end, Funs).
-
-%% -spec meck_loop_module(Module :: atom(), Funs :: [{atom(), list()}, ...]) -> ok.
-%% meck_loop_module(Module, Funs) ->
-%% 	ok = meck_module_init(Module),
-%%     lists:foreach(
-%%            fun({FunctionName, FunResults}) -> 
-%% 				   Arity = get_function_arity(Module, FunctionName),
-%%                    ok = meck:loop(Module, FunctionName, Arity, FunResults)
-%%            end, Funs).
 
 meck_function(Module, {FunctionName, Fun}) when is_function(Fun) ->
     meck:expect(Module, FunctionName, Fun);
 meck_function(Module, {FunctionName, FunResult}) ->
     Arities = get_function_arities(Module, FunctionName),
-	lists:foreach(
-	  fun(Arity) ->
-    	Fun = create_fun_with_arity(Arity, FunResult),                                           
-    	meck:expect(Module, FunctionName, Fun)
-	  end, Arities).
-
-%% meck_function(Module, {FunctionName, Fun}) when is_function(Fun) ->
-%%     meck:expect(Module, FunctionName, Fun);
-%% meck_function(Module, {FunctionName, FunResult}) ->
-%%     Arity = get_function_arity(Module, FunctionName),
-%%     Fun = create_fun_with_arity(Arity, FunResult),                                           
-%%     meck:expect(Module, FunctionName, Fun).
-
-%% get_function_arity(Module, FunctionName) ->
-%%     ModuleInfo = Module:module_info(functions),
-%%     {FunctionName, Arity} = lists:keyfind(FunctionName, 1, ModuleInfo),
-%%     Arity.
+	_ = [meck:expect(Module, FunctionName, create_fun_with_arity(Arity, FunResult)) || Arity <- Arities],
+	ok.
 
 get_function_arities(Module, FunctionName) ->
     ModuleInfo = Module:module_info(functions),
-	[Arity || {FN, Arity} <- ModuleInfo, FN == FunctionName].
+	Arities = [Arity || {FN, Arity} <- ModuleInfo, FN == FunctionName],
+	if Arities =:= [] ->
+		% return 0 arity if none is specified
+		[0];
+	true ->
+		Arities
+	end.
 
 create_fun_with_arity(0, FunResult) ->
     fun() -> FunResult end;
