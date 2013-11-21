@@ -10,7 +10,7 @@
 %%------------------------------------------------------------------------------
 %% Include files
 %%------------------------------------------------------------------------------
--include_lib("eqc/include/eqc.hrl").
+-include_lib("proper/include/proper.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 %%------------------------------------------------------------------------------
@@ -29,7 +29,8 @@
 	meck_assert_called_once/3,
 	meck_assert_not_called/3,
 	meck_assert_not_called/2,
-	meck_num_calls/2
+	meck_num_calls/2,
+	shuffle/1
 ]).
 
 %% =============================================================================
@@ -242,3 +243,18 @@ meck_assert_not_called(Module, Function, Args) ->
 meck_assert_not_called(Module, Function) ->
 	?assertEqual(0, meck_num_calls(Module, Function)),
 	ok.
+
+shuffle([])     -> [];
+shuffle([Elem]) -> [Elem];
+shuffle(List)   -> shuffle(List, length(List), []).
+
+shuffle([], 0, Result) ->
+    Result;
+shuffle(List, Len, Result) ->
+    {Elem, Rest} = nth_rest(random:uniform(Len), List),
+    shuffle(Rest, Len - 1, [Elem|Result]).
+
+nth_rest(N, List) -> nth_rest(N, List, []).
+
+nth_rest(1, [E|List], Prefix) -> {E, Prefix ++ List};
+nth_rest(N, [E|List], Prefix) -> nth_rest(N - 1, List, [E|Prefix]).

@@ -16,7 +16,7 @@
 %% =============================================================================
 -ifdef(TEST).
 
--include_lib("eqc/include/eqc.hrl").
+-include_lib("proper/include/proper.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -compile(export_all).
 -compile({parse_transform, test_parse_transform}).
