@@ -164,9 +164,15 @@ meck_module_init(Module) ->
 meck_loop_module(Module, Funs) ->
 	ok = meck_module_init(Module),
 	lists:foreach(
-	  fun({FunctionName, FunResults}) -> 
-			  Arities = get_function_arities(Module, FunctionName),
-			  _ = [ok = meck:loop(Module, FunctionName, Arity, FunResults) || Arity <- Arities]
+	  fun({FunctionName, FunResults}) ->
+      [FunResult|_] = FunResults,
+      if is_function(FunResult) ->
+        {arity, Arity} = erlang:fun_info(FunResult, arity),
+        meck:loop(Module, FunctionName, Arity, FunResults);
+      true ->
+        Arities = get_function_arities(Module, FunctionName),
+        _ = [ok = meck:loop(Module, FunctionName, Arity, FunResults) || Arity <- Arities]
+      end
 	  end, Funs).
 
 meck_function(Module, {FunctionName, Fun}) when is_function(Fun) ->
