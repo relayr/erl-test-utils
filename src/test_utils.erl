@@ -56,7 +56,9 @@ state_sleep_looper(Fun, Args, LoopTimeout, Count) when is_function(Fun), is_list
 	try
 		erlang:apply(Fun, Args)
 	catch 
-		error:{Assertion, _Info} when Count > 1, (Assertion == assertion_failed) or (Assertion == assertEqual_failed) or (Assertion == assertMatch_failed) or (Assertion == assertException_failed) ->
+		error:{Assertion, _Info} when Count > 1, (Assertion == assertion_failed) orelse (Assertion == assertEqual_failed) orelse
+                                                 (Assertion == assertNotEqual_failed) orelse (Assertion == assertMatch_failed) orelse
+                                                 (Assertion == assertException_failed) ->
 			timer:sleep(LoopTimeout),
 			state_sleep_looper(Fun, Args, LoopTimeout, Count - 1)
 	end.
