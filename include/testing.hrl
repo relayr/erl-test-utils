@@ -1,5 +1,9 @@
 -ifdef(TEST).
 
+-ifndef(testing_hrl).
+
+-define(testing_hrl, true).
+
 -include_lib("proper/include/proper.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
@@ -36,5 +40,7 @@
 			 ?LET(List,
 				  vector(Size, ?EQC_BYTE_GEN),
 				  list_to_binary(List)))).
+
+-endif.
 
 -endif.
