@@ -104,14 +104,32 @@ transform_test_function_meta_data(ModuleName, FunName, TestName, {'fun', L, {fun
 
 transform_test_functions_clause(_TestSuiteGenerator, {nil, L}, _ModuleName, _FunName, _TestNumber) ->
 	{nil, L};
+% [{X, fun() -> test() end | fun test/0}]
 transform_test_functions_clause(TestSuiteGenerator = foreachx, {cons, L1,
-																TestFunMetaData,
+                                                                {tuple, L2, [X, {'fun', L3, {function, _TestFunName, _FunArity} = FunMetaData}]},
+                                                                NextTestFunctionsClause},
+                                ModuleName, FunName, TestNumber) ->
+    % TODO: transform correctly
+%%     TransformedFunMetaData = transform_test_function_meta_data(ModuleName, FunName, test_name(L3, TestNumber), FunMetaData),
+    TransformedFunMetaData = FunMetaData,
+    TransformedNextTestFunctionsClause = transform_test_functions_clause(TestSuiteGenerator, NextTestFunctionsClause,
+                                                                         ModuleName, FunName, TestNumber + 1),
+    {cons, L1, {tuple, L2, [X, {'fun', L3, TransformedFunMetaData}]}, TransformedNextTestFunctionsClause};
+% [{X, [{"Test name", fun() -> test() end | fun test/0}, ...]}]
+transform_test_functions_clause(TestSuiteGenerator = foreachx, {cons, L1,
+                                                                {tuple, L2, [X, {'fun', L3, {clauses, TestClausesForX}}]},
 																NextTestFunctionsClause},
 								ModuleName, FunName, TestNumber) ->
-	% TODO: implement
+    {TransformedTestClausesForX, NextTestNumber} =
+        lists:mapfoldl(fun({clause, L4, TestClauseArgs, [], [TestClauseForX]}, TestNumberAcc) ->
+                            TransformedTestClauseForX = transform_test_functions_clause(foreach, TestClauseForX, ModuleName, FunName, TestNumberAcc),
+                            {{clause, L4, TestClauseArgs, [], [TransformedTestClauseForX]}, TestNumberAcc + 1}
+                       end,
+                       TestNumber,
+                       TestClausesForX),
 	TransformedNextTestFunctionsClause = transform_test_functions_clause(TestSuiteGenerator, NextTestFunctionsClause,
-																		 ModuleName, FunName, TestNumber + 1),
-	{cons, L1, TestFunMetaData, TransformedNextTestFunctionsClause};
+																		 ModuleName, FunName, NextTestNumber),
+	{cons, L1, {tuple, L2, [X, {'fun', L3, {clauses, TransformedTestClausesForX}}]}, TransformedNextTestFunctionsClause};
 % [{"Test name", fun() -> test() end | fun test/0}]
 transform_test_functions_clause(TestSuiteGenerator, {cons, L1,
 													 {tuple, L2, [TestName, {'fun', _, _} = FunMetaData]},
