@@ -225,8 +225,7 @@ meck_call_args(Module, Function) ->
 	{ok, Args}.
 
 meck_num_calls(Module, Function) ->
-	{ok, Args} = meck_call_args(Module, Function),
-	length(Args).
+    meck:num_calls(Module, Function, '_').
 
 meck_last_call_args(Module, Function) ->
 	{ok, CallArgs} = meck_call_args(Module, Function),
