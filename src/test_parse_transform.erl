@@ -60,10 +60,10 @@ transform_function({function, Line, FunNameAtom, Arity, [Clause]}) ->
 		end,
     {function, Line, list_to_atom(NewFunName), Arity, [NewClause]}.
 
-transform_test_clause(Clause, ModuleName, FunName, TestName, UnmockBeforeClause) ->
+transform_test_clause(Clause, ModuleName, FunName, TestName, UnmockBeforeAndAfterClause) ->
     % suite tests are unmocked after teardown phase
-    BeforeClause = transform_clause_before("BEGIN", Clause, ModuleName, FunName, TestName, UnmockBeforeClause),
-    transform_clause_after("END", BeforeClause, ModuleName, FunName, TestName).
+    BeforeClause = transform_clause_before("BEGIN", Clause, ModuleName, FunName, TestName, UnmockBeforeAndAfterClause),
+    transform_clause_after("END", BeforeClause, ModuleName, FunName, TestName, UnmockBeforeAndAfterClause).
 
 transform_test_suite_clause({clause, L1, CArgs, Guards, FunctionClauses}, ModuleName, FunName) ->
 	% get last element in tuple - test suite
@@ -82,7 +82,7 @@ transform_test_suite_clause({clause, L1, CArgs, Guards, FunctionClauses}, Module
 								  {'fun', L5, {clauses, [TestSuiteAfterClause]}},
 								  TestSuiteFunctionClauses]}]} ->
 			TransformedTestSuiteBeforeClause = transform_clause_before("BEFORE", TestSuiteBeforeClause, ModuleName, FunName, undefined, true),
-			TransformedTestSuiteAfterClause = transform_clause_after("AFTER", TestSuiteAfterClause, ModuleName, FunName, undefined),
+			TransformedTestSuiteAfterClause = transform_clause_after("AFTER", TestSuiteAfterClause, ModuleName, FunName, undefined, true),
  			TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
 																				  ModuleName, FunName, 1),
 			{clause, L1, CArgs, Guards, FunctionClausesFront ++ 
@@ -178,18 +178,19 @@ transform_clause_before(BeforeString, {clause, L, CArgs, Guards, Body}, ModuleNa
 	NewBody = [FirstCall | UnmockCall ++ Body],
 	{clause, L, CArgs, Guards, NewBody}.
 
-transform_clause_after(AfterString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, undefined) when is_list(ModuleName),
-																										   is_list(FunName) ->
+transform_clause_after(AfterString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, undefined, UnmockAfterClause) when is_list(ModuleName),
+																										                      is_list(FunName) ->
     LoggerCall = [{call,L,{remote,L,{atom,L,default_logger},{atom,L,log_once}},
 		[{integer,L,4},{string,L, "======================================== " ++ AfterString ++
 						   " ~s:~s ========================================~n"},{cons,L,{string,L,ModuleName},
 												{cons,L,{string,L,FunName},
 												{nil,L}}},
 		 {atom,L,false}]}],
-	NewBody = Body ++ LoggerCall,
+    UnmockCall = unmock_modules_clause(L, UnmockAfterClause),
+	NewBody = Body ++ UnmockCall ++ LoggerCall,
 	{clause, L, CArgs, Guards, NewBody};
-transform_clause_after(AfterString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, TestName) when is_list(ModuleName),
-																										  is_list(FunName) ->
+transform_clause_after(AfterString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, TestName, UnmockAfterClause) when is_list(ModuleName),
+																										                     is_list(FunName) ->
     LoggerCall = [{call,L,{remote,L,{atom,L,default_logger},{atom,L,log_once}},
 		[{integer,L,4},{string,L, "======================================== " ++ AfterString ++
 					  " ~s:~s (~s) ========================================~n"},{cons,L,{string,L,ModuleName},
@@ -197,8 +198,8 @@ transform_clause_after(AfterString, {clause, L, CArgs, Guards, Body}, ModuleName
 													 {cons,L,TestName,
 													 {nil,L}}}},
 		 {atom,L,false}]}],
-
-	NewBody = Body ++ LoggerCall,
+    UnmockCall = unmock_modules_clause(L, UnmockAfterClause),
+	NewBody = Body ++ UnmockCall ++ LoggerCall,
 	{clause, L, CArgs, Guards, NewBody}.
 
 unmock_modules_clause(_L, false) ->
