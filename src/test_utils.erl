@@ -130,6 +130,7 @@ stop_process(Name) when is_atom(Name) ->
 	end;
 stop_process(Pid) when is_pid(Pid) ->
 	try
+    true = erlang:unlink(Pid),
 		erlang:exit(Pid, kill)
 	catch 
 		_Class:_Reason ->
