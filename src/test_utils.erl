@@ -72,20 +72,40 @@ state_sleep_looper(Fun, Args, LoopTimeout, Count) when is_function(Fun), is_list
 %%------------------------------------------------------------------------------
 wait_for_process_stopped(undefined) ->
 	ok;
-wait_for_process_stopped(ProcessName) when is_atom(ProcessName) ->
-	wait_for_process_stopped(whereis(ProcessName));
 wait_for_process_stopped(ProcessID) when is_pid(ProcessID) ->
-	state_sleep_looper(
-		fun(PID) ->
-			case erlang:process_info(PID, status) of
-				undefined ->
-					ok;
-				_ ->
-					ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
-					erlang:error({assertion_failed, ErrorMsg})
-			end
-		end,
-		[ProcessID], 10, 100).
+    wait_until_process_status_is_undefined(ProcessID);
+wait_for_process_stopped(ProcessName) when is_atom(ProcessName) ->
+    ok = wait_until_process_status_is_undefined(whereis(ProcessName)),
+    wait_until_name_is_unregistered(ProcessName).
+
+wait_until_process_status_is_undefined(undefined) ->
+    ok;
+wait_until_process_status_is_undefined(ProcessID) ->
+    state_sleep_looper(
+        fun(PID) ->
+            case erlang:process_info(PID, status) of
+                undefined ->
+                    ok;
+                _ ->
+                    ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
+                    erlang:error({assertion_failed, ErrorMsg})
+            end
+        end,
+        [ProcessID], 10, 100).
+
+wait_until_name_is_unregistered(ProcessName) ->
+    state_sleep_looper(
+        fun(Name) ->
+            RegisteredNames = erlang:registered(),
+            case lists:member(Name, RegisteredNames) of
+                true ->
+                    ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [Name])),
+                    erlang:error({assertion_failed, ErrorMsg});
+                false ->
+                    ok
+            end
+        end,
+        [ProcessName], 10, 100).
 
 %%------------------------------------------------------------------------------
 %% @spec recompile_module(Module, FunctionDefs) -> ok

@@ -16,8 +16,8 @@
 
 -define(LOOPER(Fun, Args, LoopTimeout, Count), 
 		test_utils:state_sleep_looper(Fun, Args, LoopTimeout, Count)).
--define(WAIT_FOR_PROCESS_STOPPED(ProcessID), 
-		test_utils:wait_for_process_stopped(ProcessID)).
+-define(WAIT_FOR_PROCESS_STOPPED(ProcessRegisteredNameOrID),
+		test_utils:wait_for_process_stopped(ProcessRegisteredNameOrID)).
 -define(RECOMPILE(Module, FunctionDefs),
 		test_utils:recompile_module(Module, FunctionDefs)).
 -define(MECK(Module, Funs), test_utils:meck_module(Module, Funs)).
