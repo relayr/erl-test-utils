@@ -139,6 +139,15 @@ transform_test_functions_clause(TestSuiteGenerator, {cons, L1,
 	TransformedNextTestFunctionsClause = transform_test_functions_clause(TestSuiteGenerator, NextTestFunctionsClause,
 																		 ModuleName, FunName, TestNumber + 1),
 	{cons, L1, {tuple, L2, [TestName, TransformedFunMetaData]}, TransformedNextTestFunctionsClause};
+% [fun(SetupArg) -> test(SetupArg) | {"Test name", fun() -> test(SetupArg) end} end]
+transform_test_functions_clause(TestSuiteGenerator, {cons, L1,
+                                                    {'fun', L2, {clauses, [{clause, L3, [{var, L4, SetupArg}], Guards, [{_, L5, _} = Body]}]}},
+                                                    NextTestFunctionsClause},
+                                ModuleName, FunName, TestNumber) ->
+    {cons, L5, TransformedTestFunctionBody, {nil, L5}} = transform_test_functions_clause(TestSuiteGenerator, {cons, L5, Body, {nil, L5}}, ModuleName, FunName, TestNumber),
+    TransformedNextTestFunctionsClause = transform_test_functions_clause(TestSuiteGenerator, NextTestFunctionsClause,
+                                                                         ModuleName, FunName, TestNumber + 1),
+    {cons, L1, {'fun', L2, {clauses, [{clause, L3, [{var, L4, SetupArg}], Guards, [TransformedTestFunctionBody]}]}}, TransformedNextTestFunctionsClause};
 % [fun() -> test() end | fun test/0]
 transform_test_functions_clause(TestSuiteGenerator, {cons, L1,
 													{'fun', _, _} = FunMetaData, NextTestFunctionsClause},
