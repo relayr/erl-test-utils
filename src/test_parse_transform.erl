@@ -81,8 +81,14 @@ transform_test_suite_clause({clause, L1, CArgs, Guards, FunctionClauses}, Module
 								  {'fun', L4, {clauses, [TestSuiteBeforeClause]}},
 								  {'fun', L5, {clauses, [TestSuiteAfterClause]}},
 								  TestSuiteFunctionClauses]}]} ->
-			TransformedTestSuiteBeforeClause = transform_clause_before("BEFORE", TestSuiteBeforeClause, ModuleName, FunName, undefined, true),
-			TransformedTestSuiteAfterClause = transform_clause_after("AFTER", TestSuiteAfterClause, ModuleName, FunName, undefined, true),
+            IsASuiteWithSetup =
+                if TestSuiteGenerator =:= setup ->
+                    " SUITE";
+                true ->
+                    ""
+                end,
+			TransformedTestSuiteBeforeClause = transform_clause_before("BEFORE" ++ IsASuiteWithSetup, TestSuiteBeforeClause, ModuleName, FunName, undefined, true),
+			TransformedTestSuiteAfterClause = transform_clause_after("AFTER" ++ IsASuiteWithSetup, TestSuiteAfterClause, ModuleName, FunName, undefined, true),
  			TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
 																				  ModuleName, FunName, 1),
 			{clause, L1, CArgs, Guards, FunctionClausesFront ++ 
@@ -104,6 +110,23 @@ transform_test_function_meta_data(ModuleName, FunName, TestName, {'fun', L, {fun
 
 transform_test_functions_clause(_TestSuiteGenerator, {nil, L}, _ModuleName, _FunName, _TestNumber) ->
 	{nil, L};
+% nested test function clause
+transform_test_functions_clause(_TestSuiteGenerator = setup, {cons, L1,
+                                                             {tuple, L2, [{atom, L3, NestedTestSuiteGenerator},
+                                                                          {'fun', L4, {clauses, [TestSuiteBeforeClause]}},
+                                                                          {'fun', L5, {clauses, [TestSuiteAfterClause]}},
+                                                                          NestedTestFunctionsClause]},
+                                                             NextTestFunctionsClause},
+                                ModuleName, FunName, TestNumber) ->
+    TransformedTestSuiteBeforeClause = transform_clause_before("BEFORE", TestSuiteBeforeClause, ModuleName, FunName, undefined, true),
+    TransformedTestSuiteAfterClause = transform_clause_after("AFTER", TestSuiteAfterClause, ModuleName, FunName, undefined, true),
+    TransformedNestedTestFunctionsClause = transform_test_functions_clause(NestedTestSuiteGenerator, NestedTestFunctionsClause,
+        ModuleName, FunName, TestNumber),
+    {cons, L1, {tuple, L2, [{atom, L3, NestedTestSuiteGenerator},
+                            {'fun', L4, {clauses, [TransformedTestSuiteBeforeClause]}},
+                            {'fun', L5, {clauses, [TransformedTestSuiteAfterClause]}},
+                            TransformedNestedTestFunctionsClause]},
+        NextTestFunctionsClause};
 % [{X, fun() -> test() end | fun test/0}]
 transform_test_functions_clause(TestSuiteGenerator = foreachx, {cons, L1,
                                                                 {tuple, L2, [X, {'fun', L3, {function, _TestFunName, _FunArity} = FunMetaData}]},
