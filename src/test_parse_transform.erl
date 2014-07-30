@@ -54,7 +54,11 @@ transform_function({function, Line, FunNameAtom, Arity, [Clause]}) ->
 		end,
     NewClause = 
 		if IsATestGenerator ->
- 			transform_test_suite_clause(Clause, ModuleName, FunName);
+            {clause, Line, CArgs, Guards, TestSuiteClauses} = Clause,
+            % get last element in tuple - test suite
+            {TestSuiteSetupClauses, [TestSuiteClause]} = lists:split(length(TestSuiteClauses) - 1, TestSuiteClauses),
+ 			TransformedTestSuiteClause = transform_test_suite_clause(TestSuiteClause, ModuleName, FunName),
+            {clause, Line, CArgs, Guards, TestSuiteSetupClauses ++ [TransformedTestSuiteClause]};
 		true ->
 			transform_test_clause(Clause, ModuleName, FunName, undefined, true)
 		end,
@@ -65,48 +69,58 @@ transform_test_clause(Clause, ModuleName, FunName, TestName, UnmockBeforeAndAfte
     BeforeClause = transform_clause_before("BEGIN", Clause, ModuleName, FunName, TestName, UnmockBeforeAndAfterClause),
     transform_clause_after("END", BeforeClause, ModuleName, FunName, TestName, UnmockBeforeAndAfterClause).
 
-transform_test_suite_clause({clause, L1, CArgs, Guards, FunctionClauses}, ModuleName, FunName) ->
-	% get last element in tuple - test suite
-	case lists:split(length(FunctionClauses) - 1, FunctionClauses) of
-		{FunctionClausesFront, [{tuple, L2,
-								 [{atom, L3, TestSuiteGenerator = inparallel},
-								  TestSuiteFunctionClauses]}]} ->
- 			TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
-																				  ModuleName, FunName, 1),
-			{clause, L1, CArgs, Guards, FunctionClausesFront ++ 
-										[{tuple, L2, [{atom, L3, TestSuiteGenerator},
-													  TransformedTestSuiteFunctionClauses]}]};
-		{FunctionClausesFront, [{tuple, L2,
-								 [{atom, L3, TestSuiteGenerator},
-								  {'fun', L4, {clauses, [TestSuiteBeforeClause]}},
-								  {'fun', L5, {clauses, [TestSuiteAfterClause]}},
-								  TestSuiteFunctionClauses]}]} ->
-            IsASuiteWithSetup =
-                if TestSuiteGenerator =:= setup ->
-                    " SUITE";
-                true ->
-                    ""
-                end,
-			TransformedTestSuiteBeforeClause = transform_clause_before("BEFORE" ++ IsASuiteWithSetup, TestSuiteBeforeClause, ModuleName, FunName, undefined, true),
-			TransformedTestSuiteAfterClause = transform_clause_after("AFTER" ++ IsASuiteWithSetup, TestSuiteAfterClause, ModuleName, FunName, undefined, true),
- 			TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
-																				  ModuleName, FunName, 1),
-			{clause, L1, CArgs, Guards, FunctionClausesFront ++ 
-										[{tuple, L2, [{atom, L3, TestSuiteGenerator},
-													  {'fun', L4, {clauses, [TransformedTestSuiteBeforeClause]}},
-													  {'fun', L5, {clauses, [TransformedTestSuiteAfterClause]}},
-													  TransformedTestSuiteFunctionClauses]}]};
-		{FunctionClausesFront, FunctionClausesEnd} ->
-			{clause, L1, CArgs, Guards, FunctionClausesFront ++ FunctionClausesEnd}
-	end.
+% inparallel test suite
+transform_test_suite_clause({tuple, L1, [{atom, L2, TestSuiteGenerator = inparallel}, TestSuiteFunctionClauses]}, ModuleName, FunName) ->
+    TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
+                                                                          ModuleName, FunName, 1),
+    {tuple, L1, [{atom, L2, TestSuiteGenerator}, TransformedTestSuiteFunctionClauses]};
+% optional teardown function in setup test suite
+transform_test_suite_clause({tuple, L1, [{atom, L2, setup},
+                                         {'fun', L3, BeforeTestSuiteFunction},
+                                         TestSuiteFunctionClauses]}, ModuleName, FunName) ->
+    AfterTestSuiteFunction = {clauses, [{clause, L3, [{var, L3, list_to_atom("_TeardownArg" ++ integer_to_list(L3))}], [], []}]},
+    transform_test_suite_clause({tuple, L1, [{atom, L2, setup},
+                                             {'fun', L3, BeforeTestSuiteFunction},
+                                             {'fun', L3, AfterTestSuiteFunction},
+                                             TestSuiteFunctionClauses]}, ModuleName, FunName);
+transform_test_suite_clause({tuple, L1, [{atom, L2, TestSuiteGenerator},
+                                         {'fun', L3, _} = TestSuiteBeforeFunction,
+                                         {'fun', L4, _} = TestSuiteAfterFunction,
+                                         TestSuiteFunctionClauses]}, ModuleName, FunName) ->
+    IsASuiteWithSetup =
+        if TestSuiteGenerator =:= setup ->
+            " SUITE";
+        true ->
+            ""
+        end,
+    {'fun', L3, {clauses, [TestSuiteBeforeClause]}} = transform_function_to_clause(TestSuiteBeforeFunction),
+    {'fun', L4, {clauses, [TestSuiteAfterClause]}} = transform_function_to_clause(TestSuiteAfterFunction),
+    TransformedTestSuiteBeforeClause = transform_clause_before("BEFORE" ++ IsASuiteWithSetup, TestSuiteBeforeClause, ModuleName, FunName, undefined, true),
+    TransformedTestSuiteAfterClause = transform_clause_after("AFTER" ++ IsASuiteWithSetup, TestSuiteAfterClause, ModuleName, FunName, undefined, true),
+    TransformedTestSuiteFunctionClauses = transform_test_functions_clause(TestSuiteGenerator, TestSuiteFunctionClauses,
+                                                                          ModuleName, FunName, 1),
+    {tuple, L1, [{atom, L2, TestSuiteGenerator},
+                 {'fun', L3, {clauses, [TransformedTestSuiteBeforeClause]}},
+                 {'fun', L4, {clauses, [TransformedTestSuiteAfterClause]}},
+                 TransformedTestSuiteFunctionClauses]};
+transform_test_suite_clause(TestSuiteClause, _ModuleName, _FunName) ->
+    TestSuiteClause.
 
-transform_test_function_meta_data(ModuleName, FunName, TestName, {'fun', L, {clauses, [TestFunClause]}}) ->
-	TransformedTestFunClause = transform_test_clause(TestFunClause, ModuleName, FunName, TestName, false),
-	{'fun', L, {clauses, [TransformedTestFunClause]}};
-transform_test_function_meta_data(ModuleName, FunName, TestName, {'fun', L, {function, TestFunName, 0}}) ->
-	TestFunClause = {clause, L, [], [], [{call,L,{atom,L,TestFunName},[]}]},
+transform_test_function_meta_data(ModuleName, FunName, TestName, TestFunction) ->
+    {'fun', L, {clauses, [TestFunClause]}} = transform_function_to_clause(TestFunction),
 	TransformedTestFunClause = transform_test_clause(TestFunClause, ModuleName, FunName, TestName, false),
 	{'fun', L, {clauses, [TransformedTestFunClause]}}.
+
+transform_function_to_clause({'fun', L, {clauses, [FunClause]}}) ->
+    {'fun', L, {clauses, [FunClause]}};
+transform_function_to_clause({'fun', L, {function, FunName, 0}}) ->
+    {'fun', L, {clauses, [{clause, L, [], [], [{call, L, {atom, L, FunName}, []}]}]}};
+transform_function_to_clause({'fun', L, {function, FunName, 1}}) ->
+    FunArg = {var, L, list_to_atom("FunArg" ++ integer_to_list(L))},
+    {'fun', L, {clauses, [{clause, L, [FunArg], [], [{call, L, {atom, L, FunName}, [FunArg]}]}]}};
+transform_function_to_clause({'fun', L1, {function, ModuleName, FunName, {integer, L2, 1}}}) ->
+    FunArg = {var, L2, list_to_atom("FunArg" ++ integer_to_list(L2))},
+    {'fun', L1, {clauses, [{clause, L1, [FunArg], [], [{call, L1, {remote, L1, ModuleName, FunName}, [FunArg]}]}]}}.
 
 transform_test_functions_clause(_TestSuiteGenerator, {nil, L}, _ModuleName, _FunName, _TestNumber) ->
 	{nil, L};
