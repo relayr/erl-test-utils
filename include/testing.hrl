@@ -22,6 +22,8 @@
 		test_utils:recompile_module(Module, FunctionDefs)).
 -define(MECK(Module, Funs), test_utils:meck_module(Module, Funs)).
 -define(MECK_LOOP(Module, Funs), test_utils:meck_loop_module(Module, Funs)).
+-define(MECK_RESET(Module), meck:reset(Module)).
+-define(MECK_AND_RESET(Module, Funs), ?MECK(Module, Funs), meck:reset(Module)).
 -define(UNMECK, test_utils:unmeck_modules()).
 
 % QuickCheck generators
