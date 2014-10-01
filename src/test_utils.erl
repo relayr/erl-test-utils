@@ -30,7 +30,8 @@
 	meck_assert_not_called/3,
 	meck_assert_not_called/2,
 	meck_num_calls/2,
-	shuffle/1
+	shuffle/1,
+    list_containing/1
 ]).
 
 %% =============================================================================
@@ -286,3 +287,10 @@ nth_rest(N, List) -> nth_rest(N, List, []).
 
 nth_rest(1, [E|List], Prefix) -> {E, Prefix ++ List};
 nth_rest(N, [E|List], Prefix) -> nth_rest(N - 1, List, [E|Prefix]).
+
+list_containing(ElementsToBeInActual) when is_list(ElementsToBeInActual) ->
+    fun(Actual) ->
+        F = fun(E, Acc) -> Acc and lists:member(E, Actual) end,
+        lists:foldl(F, true, ElementsToBeInActual)
+    end.
+
