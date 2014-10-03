@@ -8,5 +8,5 @@
 		test_utils
 	]},
 	{registered, []},
-	{applications, [kernel, stdlib]}
+	{applications, [kernel, stdlib, hamcrest]}
 ]}.
