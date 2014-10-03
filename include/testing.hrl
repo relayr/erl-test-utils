@@ -6,7 +6,6 @@
 
 -include_lib("proper/include/proper.hrl").
 -include_lib("eunit/include/eunit.hrl").
--include_lib("hamcrest/include/hamcrest.hrl").
 
 -import(test_utils, [shuffle/1]).
 
@@ -43,8 +42,6 @@
 			 ?LET(List,
 				  vector(Size, ?EQC_BYTE_GEN),
 				  list_to_binary(List)))).
-
--define(ASSERT_THAT(ACTUAL, MATCHER), hamcrest:assert_that(ACTUAL, MATCHER)).
 
 -endif.
 
