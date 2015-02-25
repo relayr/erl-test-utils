@@ -11,8 +11,10 @@
 
 -compile(export_all).
 -compile({parse_transform, test_parse_transform}).
+-compile({parse_transform, prop_test_parse_transform}).
 
 -define(TEST_FUN(), -test_function([])).
+-define(PROP_TEST_FUN(), -prop_test_function([])).
 
 -define(LOOPER(Fun, Args, LoopTimeout, Count), 
 		test_utils:state_sleep_looper(Fun, Args, LoopTimeout, Count)).
