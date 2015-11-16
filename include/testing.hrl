@@ -28,6 +28,9 @@
 -define(MECK_AND_RESET(Module, Funs), ?MECK(Module, Funs), meck:reset(Module)).
 -define(UNMECK, test_utils:unmeck_modules()).
 
+-define(IDENTITY, fun(X) -> X end).
+-define(IDENTITY_OK, fun(X) -> {ok, X} end).
+
 % QuickCheck generators
 -define(EQC_STRING_GEN, non_empty(list(choose($a,$z)))).
 -define(EQC_ATOM_GEN, ?LET(Name, ?EQC_STRING_GEN, list_to_atom(Name))).
