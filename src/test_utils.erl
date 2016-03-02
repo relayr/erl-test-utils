@@ -235,7 +235,19 @@ create_fun_with_arity(7, FunResult) ->
 create_fun_with_arity(8, FunResult) ->
     fun(_, _, _, _, _, _, _, _) -> FunResult end;
 create_fun_with_arity(9, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _) -> FunResult end.
+    fun(_, _, _, _, _, _, _, _, _) -> FunResult end;
+create_fun_with_arity(10, FunResult) ->
+	fun(_, _, _, _, _, _, _, _, _, _) -> FunResult end;
+create_fun_with_arity(11, FunResult) ->
+	fun(_, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
+create_fun_with_arity(12, FunResult) ->
+	fun(_, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
+create_fun_with_arity(13, FunResult) ->
+	fun(_, _, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
+create_fun_with_arity(14, FunResult) ->
+	fun(_, _, _, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
+create_fun_with_arity(15, FunResult) ->
+	fun(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end.
 
 unmeck_modules()  ->
     meck:unload(),
