@@ -48,6 +48,32 @@
 				  vector(Size, ?EQC_BYTE_GEN),
 				  list_to_binary(List)))).
 
+-define(assertContains(Element, List), begin ((
+	fun(E, L) ->
+		case lists:member(E, L) of
+			true -> ok;
+			__V -> erlang:error({assertion_failed,
+				[{module, ?MODULE},
+					{line, ?LINE},
+					{expected, L ++ [E]},
+					{value, L}]})
+		end
+	end
+)(Element, List))end).
+
+-define(assertNotContains(Element, List), begin ((
+		fun(E, L) ->
+			case lists:member(E, L) of
+				false -> ok;
+				__V -> erlang:error({assertion_failed,
+					[{module, ?MODULE},
+						{line, ?LINE},
+						{expected, L -- [E]},
+						{value, L}]})
+			end
+		end
+)(Element, List))end).
+
 -endif.
 
 -endif.
