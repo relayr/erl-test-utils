@@ -27,6 +27,7 @@
 -define(MECK_RESET(Module), meck:reset(Module)).
 -define(MECK_AND_RESET(Module, Funs), ?MECK(Module, Funs), meck:reset(Module)).
 -define(UNMECK, test_utils:unmeck_modules()).
+-define(UNMECK(Module), test_utils:unmeck_module(Module)).
 
 -define(IDENTITY, fun(X) -> X end).
 -define(IDENTITY_OK, fun(X) -> {ok, X} end).

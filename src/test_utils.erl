@@ -24,6 +24,7 @@
     meck_module/2,
 	meck_loop_module/2,
     unmeck_modules/0,
+	unmeck_module/1,
 	meck_call_args/2,
 	meck_last_call_args/2,
 	meck_assert_called_once/3,
@@ -250,8 +251,10 @@ create_fun_with_arity(15, FunResult) ->
 	fun(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end.
 
 unmeck_modules()  ->
-    meck:unload(),
-    ok.
+    meck:unload().
+
+unmeck_module(Module)  ->
+	meck:unload(Module).
 
 meck_call_args(Module, Function) ->
 	History = meck:history(Module),
