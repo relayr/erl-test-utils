@@ -28,6 +28,7 @@
 -define(MECK_AND_RESET(Module, Funs), ?MECK(Module, Funs), meck:reset(Module)).
 -define(UNMECK, test_utils:unmeck_modules()).
 -define(UNMECK(Module), test_utils:unmeck_module(Module)).
+-define(SORT(List), lists:sort(List)).
 
 -define(IDENTITY, fun(X) -> X end).
 -define(IDENTITY_OK, fun(X) -> {ok, X} end).
@@ -74,6 +75,9 @@
 			end
 		end
 )(Element, List))end).
+
+
+-define(assertEqualUnordered(Expected, Actual), ?assertEqual(?SORT(Expected), ?SORT(Actual))).
 
 -endif.
 
