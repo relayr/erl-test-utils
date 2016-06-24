@@ -15,7 +15,7 @@
 
 -define(TEST_FUN(), -test_function([])).
 -define(PROP_TEST_FUN(), -prop_test_function([])).
-
+-define(TEST_CASE(FunName), {atom_to_list(FunName), fun FunName/0}).
 -define(LOOPER(Fun, Args, LoopTimeout, Count), 
 		test_utils:state_sleep_looper(Fun, Args, LoopTimeout, Count)).
 -define(WAIT_FOR_PROCESS_STOPPED(ProcessRegisteredNameOrID),
