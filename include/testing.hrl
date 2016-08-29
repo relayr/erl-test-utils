@@ -63,6 +63,19 @@
 	end
 )(Element, List))end).
 
+-define(assertContainsAll(Elements, List), begin ((
+	fun(Es, L) ->
+		case lists:all(fun(E) -> lists:member(E, L) end, Es) of
+			true -> ok;
+			__V -> erlang:error({assertion_failed,
+				[{module, ?MODULE},
+					{line, ?LINE},
+					{expected, L ++ Es},
+					{value, L}]})
+		end
+	end
+)(Elements, List))end).
+
 -define(assertNotContains(Element, List), begin ((
 		fun(E, L) ->
 			case lists:member(E, L) of
