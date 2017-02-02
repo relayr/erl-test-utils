@@ -72,17 +72,23 @@ state_sleep_looper(Fun, Args, LoopTimeout, Count) when is_function(Fun), is_list
 %% @doc Wait for process with given ProcessID to be stopped.
 %% @end
 %%------------------------------------------------------------------------------
-wait_for_process_stopped(undefined) ->
-	ok;
-wait_for_process_stopped(ProcessID) when is_pid(ProcessID) ->
-    wait_until_process_status_is_undefined(ProcessID);
-wait_for_process_stopped(ProcessName) when is_atom(ProcessName) ->
-    ok = wait_until_process_status_is_undefined(whereis(ProcessName)),
-    wait_until_name_is_unregistered(ProcessName).
 
-wait_until_process_status_is_undefined(undefined) ->
+wait_for_process_stopped(ProcessID) ->
+    wait_for_process_stopped(ProcessID, 1000).
+
+wait_for_process_stopped(undefined, _Timeout) ->
+	ok;
+wait_for_process_stopped(ProcessID, Timeout) when is_pid(ProcessID) ->
+    wait_until_process_status_is_undefined(ProcessID, Timeout);
+wait_for_process_stopped(ProcessName, Timeout) when is_atom(ProcessName) ->
+    ok = wait_until_process_status_is_undefined(whereis(ProcessName), Timeout),
+    wait_until_name_is_unregistered(ProcessName, Timeout).
+
+wait_until_process_status_is_undefined(undefined, _Timeout) ->
     ok;
-wait_until_process_status_is_undefined(ProcessID) ->
+wait_until_process_status_is_undefined(ProcessID, Timeout) ->
+    LoopTimeout = 100,
+    LoopCount = Timeout div LoopTimeout,
     state_sleep_looper(
         fun(PID) ->
             case erlang:process_info(PID, status) of
@@ -93,9 +99,11 @@ wait_until_process_status_is_undefined(ProcessID) ->
                     erlang:error({assertion_failed, ErrorMsg})
             end
         end,
-        [ProcessID], 10, 100).
+        [ProcessID], LoopCount, LoopTimeout).
 
-wait_until_name_is_unregistered(ProcessName) ->
+wait_until_name_is_unregistered(ProcessName, Timeout) ->
+    LoopTimeout = 100,
+    LoopCount = Timeout div LoopTimeout,
     state_sleep_looper(
         fun(Name) ->
             RegisteredNames = erlang:registered(),
@@ -107,7 +115,7 @@ wait_until_name_is_unregistered(ProcessName) ->
                     ok
             end
         end,
-        [ProcessName], 10, 100).
+        [ProcessName], LoopCount, LoopTimeout).
 
 %%------------------------------------------------------------------------------
 %% @spec recompile_module(Module, FunctionDefs) -> ok
