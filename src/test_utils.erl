@@ -19,6 +19,7 @@
 -export([
 	state_sleep_looper/4,
 	wait_for_process_stopped/1,
+	wait_for_process_stopped/2,
 	recompile_module/2,
 	stop_processes/1,
     meck_module/2,
