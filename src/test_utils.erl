@@ -59,9 +59,9 @@ state_sleep_looper(Fun, Args, LoopTimeout, Count) when is_function(Fun), is_list
 	try
 		erlang:apply(Fun, Args)
 	catch 
-		error:{Assertion, _Info} when Count > 1, (Assertion == assertion_failed) orelse (Assertion == assertEqual_failed) orelse
-                                                 (Assertion == assertNotEqual_failed) orelse (Assertion == assertMatch_failed) orelse
-                                                 (Assertion == assertException_failed) ->
+		error:{Assertion, _Info} when Count > 1, (Assertion == assert) orelse (Assertion == assertEqual) orelse
+                                                 (Assertion == assertNotEqual) orelse (Assertion == assertMatch) orelse
+                                                 (Assertion == assertException) ->
 			timer:sleep(LoopTimeout),
 			state_sleep_looper(Fun, Args, LoopTimeout, Count - 1)
 	end.
@@ -97,7 +97,7 @@ wait_until_process_status_is_undefined(ProcessID, Timeout) ->
                     ok;
                 _ ->
                     ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
-                    erlang:error({assertion_failed, ErrorMsg})
+                    erlang:error({assert, ErrorMsg})
             end
         end,
         [ProcessID], LoopCount, LoopTimeout).
@@ -111,7 +111,7 @@ wait_until_name_is_unregistered(ProcessName, Timeout) ->
             case lists:member(Name, RegisteredNames) of
                 true ->
                     ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [Name])),
-                    erlang:error({assertion_failed, ErrorMsg});
+                    erlang:error({assert, ErrorMsg});
                 false ->
                     ok
             end

@@ -71,7 +71,7 @@ state_sleep_looper_wrong_arity() ->
 state_sleep_looper_args() ->
 	LoopTimeout = 1,
 	Count = 3,
-	ExpExc = {assertion_failed, info},
+	ExpExc = {assert, info},
 	Fun = fun
 		(arg1, arg2) ->
 			inc_counter(function_calls),
@@ -83,7 +83,7 @@ state_sleep_looper_args() ->
 					erlang:error(ExpExc)
 			end
 	end,
-	
+
 	% function will exit in the 2nd iteration
 	set_counter(exit_fun_after, 2),
 	set_counter(function_calls, 0),
@@ -108,8 +108,8 @@ wait_for_process_stopped() ->
 	PID = spawn(fun() -> receive stop -> ok end end),
 	true = register(proc, PID),
 	ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
-	?assertException(error, {assertion_failed, ErrorMsg}, test_utils:wait_for_process_stopped(PID, 300)),
-	?assertException(error, {assertion_failed, ErrorMsg}, test_utils:wait_for_process_stopped(proc, 300)),
+	?assertException(error, {assert, ErrorMsg}, test_utils:wait_for_process_stopped(PID, 300)),
+	?assertException(error, {assert, ErrorMsg}, test_utils:wait_for_process_stopped(proc, 300)),
 	proc ! stop,
 	ok = test_utils:wait_for_process_stopped(PID),
 	ok = test_utils:wait_for_process_stopped(proc),

@@ -54,7 +54,7 @@
 	fun(E, L) ->
 		case lists:member(E, L) of
 			true -> ok;
-			__V -> erlang:error({assertion_failed,
+			__V -> erlang:error({assert,
 				[{module, ?MODULE},
 					{line, ?LINE},
 					{expected, L ++ [E]},
@@ -67,7 +67,7 @@
 	fun(Es, L) ->
 		case lists:all(fun(E) -> lists:member(E, L) end, Es) of
 			true -> ok;
-			__V -> erlang:error({assertion_failed,
+			__V -> erlang:error({assert,
 				[{module, ?MODULE},
 					{line, ?LINE},
 					{expected, L ++ Es},
@@ -80,7 +80,7 @@
 		fun(E, L) ->
 			case lists:member(E, L) of
 				false -> ok;
-				__V -> erlang:error({assertion_failed,
+				__V -> erlang:error({assert,
 					[{module, ?MODULE},
 						{line, ?LINE},
 						{expected, L -- [E]},
