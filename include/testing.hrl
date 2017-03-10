@@ -89,6 +89,21 @@
 		end
 )(Element, List))end).
 
+-define(assertJson(Expected, Actual), begin ((
+	fun(E, A) ->
+		StripWhitespaces = fun
+			(Binary) when is_binary(Binary) ->
+				jsx:encode(jsx:decode(Binary));
+			(JSX) ->
+				jsx:encode(JSX)
+		end,
+		StripedE = StripWhitespaces(E),
+		StripedA = StripWhitespaces(A),
+		io:format("~nExpected: ~p", [StripedE]),
+		io:format("~nActual  : ~p", [StripedA]),
+		?assertEqual(StripedE, StripedA)
+	end
+)(Expected, Actual))end).
 
 -define(assertEqualUnordered(Expected, Actual), ?assertEqual(?SORT(Expected), ?SORT(Actual))).
 -define(assertNotEqualUnordered(Expected, Actual), ?assertNotEqual(?SORT(Expected), ?SORT(Actual))).
