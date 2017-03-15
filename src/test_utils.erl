@@ -304,7 +304,7 @@ shuffle(List)   -> shuffle(List, length(List), []).
 shuffle([], 0, Result) ->
     Result;
 shuffle(List, Len, Result) ->
-    {Elem, Rest} = nth_rest(random:uniform(Len), List),
+    {Elem, Rest} = nth_rest(utils:rand_uniform(Len), List),
     shuffle(Rest, Len - 1, [Elem|Result]).
 
 nth_rest(N, List) -> nth_rest(N, List, []).
