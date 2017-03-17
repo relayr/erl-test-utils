@@ -4,6 +4,7 @@
 	{description, "Test utilities for Proximetry usage"},
 	{vsn, "1.0"},
 	{modules, [
+		eunit_jenkins_report,
 		smerl,
 		test_utils
 	]},
