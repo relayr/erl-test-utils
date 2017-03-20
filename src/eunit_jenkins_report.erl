@@ -357,7 +357,7 @@ write_testcase(
     NameAttr = [lists:last(NameTokens)],
     StartTag = [
         ?INDENT, <<"<testcase time=\"">>, format_time(Time), <<"\"">>,
-        <<" classname=\"">>, AppName, ModuleName, <<"\"">>,
+        <<" classname=\"erlang.">>, AppName, ModuleName, <<"\"">>,
         <<" name=\"">>, NameAttr, DescriptionAttr, <<"\"">>],
     ContentAndEndTag = case {Result, Output} of
         {ok, <<>>} -> [<<"/>">>, ?NEWLINE];
