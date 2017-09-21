@@ -8,8 +8,6 @@
 %%------------------------------------------------------------------------------
 -module(prop_test_parse_transform).
 
--include_lib("logger/include/logger.hrl").
-
 -export([parse_transform/2]).
 
 parse_transform(Tree, _Options) ->
