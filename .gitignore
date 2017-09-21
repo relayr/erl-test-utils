@@ -1,4 +1,3 @@
 .*
 !.gitignore
 _build
-rebar.lock
