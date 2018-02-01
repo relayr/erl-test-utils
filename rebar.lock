@@ -1,6 +1,6 @@
 [{<<"meck">>,
   {git,"https://github.com/eproxus/meck.git",
-       {ref,"70d6a33ce7407029dc59e22a5b3c1c61c1348b23"}},
+       {ref,"36b208e2d4d7d09ef7ef7f7aa7979da79fa97ef3"}},
   0},
  {<<"proper">>,
   {git,"https://github.com/manopapad/proper.git",
