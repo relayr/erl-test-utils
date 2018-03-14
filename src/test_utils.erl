@@ -33,7 +33,9 @@
 	meck_assert_not_called/3,
 	meck_num_calls/2,
 	shuffle/1,
-    list_containing/1
+    list_containing/1,
+    generator/1,
+    generator/2
 ]).
 
 %% =============================================================================
@@ -320,3 +322,64 @@ list_containing(ElementsToBeInActual) when is_list(ElementsToBeInActual) ->
         lists:foldl(F, true, ElementsToBeInActual)
     end.
 
+-spec generator(list(N), N) -> fun(() -> N).
+generator(List, LastItem) ->
+	F = fun
+			Loop([H | T]) ->
+				receive
+					{get, Ref, From} ->
+						From ! {result, Ref, H},
+						ok
+				end,
+				Loop(T);
+			Loop([]) ->
+				ok
+		end,
+	Pid = spawn(fun() -> F(List) end),
+	fun() ->
+		case process_info(Pid) of
+			undefined -> LastItem;
+			_ ->
+				Ref = make_ref(),
+				Pid ! {get, Ref, self()},
+				receive
+					{result, Ref, Result} -> Result
+				end
+		end
+	end.
+
+-spec generator(stream:stream(N)) -> fun((_) -> N).
+generator(Stream) ->
+	F = fun Loop(Stream) ->
+		receive
+			{get, Ref, From} ->
+				{H, T} = Stream(),
+				From ! {result, Ref, H},
+				Loop(T);
+			{close, Ref, From} ->
+				From ! {result, Ref, ok}
+		end
+		end,
+	Pid = spawn_link(fun() -> F(Stream) end),
+	fun
+		(get) ->
+			case process_info(Pid) of
+				undefined -> closed;
+				_ ->
+					Ref = make_ref(),
+					Pid ! {get, Ref, self()},
+					receive
+						{result, Ref, Result} -> Result
+					end
+			end;
+		(close) ->
+			case process_info(Pid) of
+				undefined -> ok;
+				_ ->
+					Ref = make_ref(),
+					Pid ! {close, Ref, self()},
+					receive
+						{result, Ref, Result} -> Result
+					end
+			end
+	end.
