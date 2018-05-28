@@ -1,16 +1,22 @@
-[{<<"logger">>,
+{"1.1.0",
+[{<<"iso8601">>,{pkg,<<"iso8601">>,<<"1.2.3">>},2},
+ {<<"logger">>,
   {git,"https://github.com/relayr/pdm-erl-logger.git",
-       {ref,"ccbadb536cee4576be7baa27a222a9205c7976f1"}},
+       {ref,"603247d9658e3c0810e5be0d59d6af6ff5ae4f0e"}},
   0},
  {<<"meck">>,
   {git,"https://github.com/eproxus/meck.git",
        {ref,"36b208e2d4d7d09ef7ef7f7aa7979da79fa97ef3"}},
   0},
- {<<"process_group">>,
-  {git,"https://github.com/relayr/pdm-erl-process-group.git",
-       {ref,"6cb1831f0833816750d809b06a60169aa540c412"}},
-  1},
+ {<<"process_group">>,{pkg,<<"process_group">>,<<"1.0.7">>},1},
  {<<"proper">>,
   {git,"https://github.com/manopapad/proper.git",
        {ref,"5f0d69c831b6c9f52535c3d1846efca480f6190d"}},
-  0}].
+  0},
+ {<<"time_utils">>,{pkg,<<"time_utils">>,<<"1.0.4">>},1}]}.
+[
+{pkg_hash,[
+ {<<"iso8601">>, <<"56D173EC568D42E95908797A9B7D27BCF0B377443277416733EB1A544A4A47C2">>},
+ {<<"process_group">>, <<"07349D154EEDDAFCC02CCE897A6A17F7AC1537EF435C951A4A23FEC7D7BF6806">>},
+ {<<"time_utils">>, <<"C6C87310E845A9A74EB4D22DFDD2DAC923590193D3E5213B99C4841989F142ED">>}]}
+].
