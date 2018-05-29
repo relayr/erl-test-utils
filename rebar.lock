@@ -2,7 +2,7 @@
 [{<<"iso8601">>,{pkg,<<"iso8601">>,<<"1.2.3">>},2},
  {<<"logger">>,
   {git,"https://github.com/relayr/pdm-erl-logger.git",
-       {ref,"603247d9658e3c0810e5be0d59d6af6ff5ae4f0e"}},
+       {ref,"1d7a4b35269cba4c8f5d9c542491102e1b1d8a19"}},
   0},
  {<<"meck">>,
   {git,"https://github.com/eproxus/meck.git",
