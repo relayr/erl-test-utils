@@ -11,5 +11,5 @@
         test_utils
     ]},
     {registered, []},
-    {applications, [kernel, stdlib, meck, proper]}
+    {applications, [kernel, stdlib, meck, proper, pdm_logger]}
 ]}.
