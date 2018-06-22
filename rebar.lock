@@ -4,6 +4,7 @@
  {<<"pdm_logger">>,{pkg,<<"pdm_logger">>,<<"2.1.1">>},0},
  {<<"process_group">>,{pkg,<<"process_group">>,<<"1.0.7">>},1},
  {<<"proper">>,{pkg,<<"proper">>,<<"1.2.0">>},0},
+ {<<"smerl">>,{pkg,<<"smerl">>,<<"0.0.1">>},0},
  {<<"time_utils">>,{pkg,<<"time_utils">>,<<"1.0.4">>},1}]}.
 [
 {pkg_hash,[
@@ -12,5 +13,6 @@
  {<<"pdm_logger">>, <<"C95AA3DBE0622478414BF9C72E2254FC2775DBDDE845C8AA6DD5E68B4D95ED20">>},
  {<<"process_group">>, <<"07349D154EEDDAFCC02CCE897A6A17F7AC1537EF435C951A4A23FEC7D7BF6806">>},
  {<<"proper">>, <<"1466492385959412A02871505434E72E92765958C60DBA144B43863554B505A4">>},
+ {<<"smerl">>, <<"DAC7A866604106C83E7C90D3EE068712CC3C69781B4FC0B6AE09593569EFAB23">>},
  {<<"time_utils">>, <<"C6C87310E845A9A74EB4D22DFDD2DAC923590193D3E5213B99C4841989F142ED">>}]}
 ].
