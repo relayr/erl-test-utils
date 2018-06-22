@@ -47,26 +47,24 @@ transform_function({function, Line, FunNameAtom, Arity, [Clause]}) ->
 			_ ->
 				FunName
 		end,
-    NewClause = transform_test_clause(Clause, ModuleName, NewFunName, true),
+    NewClause = transform_test_clause(Clause, ModuleName, NewFunName),
     {function, Line, list_to_atom(NewFunName), Arity, [NewClause]}.
 
-transform_test_clause(Clause, ModuleName, FunName, UnmockBeforeAndAfterClause) ->
+transform_test_clause(Clause, ModuleName, FunName) ->
     % suite tests are unmocked after teardown phase
-    transform_clause_before("BEGIN", Clause, ModuleName, FunName, UnmockBeforeAndAfterClause).
+    transform_clause_before("BEGIN", Clause, ModuleName, FunName).
 
-transform_clause_before(BeforeString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName, UnmockBeforeClause) when is_list(ModuleName),
-																							                                     is_list(FunName) ->
+transform_clause_before(BeforeString, {clause, L, CArgs, Guards, Body}, ModuleName, FunName)
+    when is_list(ModuleName), is_list(FunName) ->
     FirstCall = {call,L,{remote,L,{atom,L,default_logger},{atom,L,log_once}},
 		[{integer,L,4},{string,L, "~n======================================== " ++ BeforeString ++
 							 " ~s:~s ========================================"},{cons,L,{string,L,ModuleName},
 												  {cons,L,{string,L,FunName},
 												  {nil,L}}},
 		 {atom,L,false}]},
-    UnmockCall = unmock_modules_clause(L, UnmockBeforeClause),
+    UnmockCall = unmock_modules_clause(L),
 	NewBody = [FirstCall | UnmockCall ++ Body],
 	{clause, L, CArgs, Guards, NewBody}.
 
-unmock_modules_clause(_L, false) ->
-    [];
-unmock_modules_clause(L, true) ->
+unmock_modules_clause(L) ->
     [{call,L,{remote,L,{atom,L,test_utils},{atom,L,unmeck_modules}}, []}].
