@@ -5,11 +5,6 @@
     {vsn, "1.0.0"},
     {licenses, ["MIT"]},
     {links, [{"GitHub", "https://github.com/relayr/pdm-erl-testutils"}]},
-    {modules, [
-        eunit_jenkins_report,
-        smerl,
-        test_utils
-    ]},
     {registered, []},
-    {applications, [kernel, stdlib, meck, proper, pdm_logger]}
+    {applications, [kernel, stdlib, eunit, meck, proper, pdm_logger]}
 ]}.
