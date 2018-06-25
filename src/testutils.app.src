@@ -1,10 +1,8 @@
-% testutils is a library not an application.
-% This file is for compatibility issues only.
-{application, testutils, [
-    {description, "Test utilities for Proximetry usage"},
-    {vsn, "1.0.0"},
-    {licenses, ["MIT"]},
-    {links, [{"GitHub", "https://github.com/relayr/pdm-erl-testutils"}]},
-    {registered, []},
-    {applications, [kernel, stdlib, eunit, meck, proper, pdm_logger]}
-]}.
+{application,testutils,
+             [{description,"Test utilities for Proximetry usage"},
+              {vsn,"1.0.1"},
+              {licenses,["MIT"]},
+              {links,[{"GitHub",
+                       "https://github.com/relayr/pdm-erl-testutils"}]},
+              {registered,[]},
+              {applications,[kernel,stdlib,eunit,meck,proper,pdm_logger]}]}.
