@@ -1,18 +1,18 @@
 {"1.1.0",
 [{<<"iso8601">>,{pkg,<<"iso8601">>,<<"1.2.3">>},2},
  {<<"meck">>,{pkg,<<"meck">>,<<"0.8.6">>},0},
- {<<"pdm_logger">>,{pkg,<<"pdm_logger">>,<<"2.1.2">>},0},
- {<<"process_group">>,{pkg,<<"process_group">>,<<"1.0.7">>},1},
+ {<<"pdm_logger">>,{pkg,<<"pdm_logger">>,<<"2.1.3">>},0},
+ {<<"process_group">>,{pkg,<<"process_group">>,<<"1.0.8">>},1},
  {<<"proper">>,{pkg,<<"proper">>,<<"1.2.0">>},0},
  {<<"smerl">>,{pkg,<<"smerl">>,<<"0.0.1">>},0},
- {<<"time_utils">>,{pkg,<<"time_utils">>,<<"1.0.4">>},1}]}.
+ {<<"time_utils">>,{pkg,<<"time_utils">>,<<"1.0.5">>},1}]}.
 [
 {pkg_hash,[
  {<<"iso8601">>, <<"56D173EC568D42E95908797A9B7D27BCF0B377443277416733EB1A544A4A47C2">>},
  {<<"meck">>, <<"AF92A4D3E1525173A7162ED25E9BA6C6C7874E054900B8AE4A23FE71290890E0">>},
- {<<"pdm_logger">>, <<"230EA30848DDF0A795D3FF327DC78ADBD3D267683740993AD53E6E6357EDB68A">>},
- {<<"process_group">>, <<"07349D154EEDDAFCC02CCE897A6A17F7AC1537EF435C951A4A23FEC7D7BF6806">>},
+ {<<"pdm_logger">>, <<"E16AA14218361809E979A27A468BDA285436455B693119621549CBF95EB7CB04">>},
+ {<<"process_group">>, <<"6BD9D1DC923CB8E76182132B996A6A32D9508535D56BBB092CE1F79622C10BE3">>},
  {<<"proper">>, <<"1466492385959412A02871505434E72E92765958C60DBA144B43863554B505A4">>},
  {<<"smerl">>, <<"DAC7A866604106C83E7C90D3EE068712CC3C69781B4FC0B6AE09593569EFAB23">>},
- {<<"time_utils">>, <<"C6C87310E845A9A74EB4D22DFDD2DAC923590193D3E5213B99C4841989F142ED">>}]}
+ {<<"time_utils">>, <<"3FC460A7E7D333D3658940D242F29AE3A33970D2526D6E8DD9C022D51101B556">>}]}
 ].
