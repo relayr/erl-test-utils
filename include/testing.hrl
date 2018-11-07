@@ -95,8 +95,12 @@
 					 SSort(Unsorted) when is_list(Unsorted) ->
 						 SubSorted = [SSort(U) || U <- Unsorted],
 						 ?SORT(SubSorted);
-					 SSort(Tuple) ->
-						 Tuple
+					 SSort(Tuple) when is_tuple(Tuple) ->
+						 TupleAsList = tuple_to_list(Tuple),
+						 SubSorted = [SSort(U) || U <- TupleAsList],
+						 list_to_tuple(SubSorted);
+					 SSort(Primitive) ->
+						 Primitive
 				 end,
 		StripWhitespacesAndSort = fun
 									  (Binary) when is_binary(Binary) ->
