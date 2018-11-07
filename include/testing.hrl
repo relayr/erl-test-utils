@@ -91,14 +91,21 @@
 
 -define(assertJson(Expected, Actual), begin ((
 	fun(E, A) ->
-		StripWhitespaces = fun
-			(Binary) when is_binary(Binary) ->
-				jsx:encode(jsx:decode(Binary));
-			(JSX) ->
-				jsx:encode(JSX)
-		end,
-		StripedE = StripWhitespaces(E),
-		StripedA = StripWhitespaces(A),
+		SortMe = fun
+					 SSort(Unsorted) when is_list(Unsorted) ->
+						 SubSorted = [SSort(U) || U <- Unsorted],
+						 ?SORT(SubSorted);
+					 SSort(Tuple) ->
+						 Tuple
+				 end,
+		StripWhitespacesAndSort = fun
+									  (Binary) when is_binary(Binary) ->
+										  jsx:encode(SortMe(jsx:decode(Binary)));
+									  (JSX) ->
+										  jsx:encode(SortMe(JSX))
+								  end,
+		StripedE = StripWhitespacesAndSort(E),
+		StripedA = StripWhitespacesAndSort(A),
 		io:format("~nExpected: ~p", [StripedE]),
 		io:format("~nActual  : ~p", [StripedA]),
 		?assertEqual(StripedE, StripedA)
