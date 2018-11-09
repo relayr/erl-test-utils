@@ -121,7 +121,7 @@ wait_for_process_stopped() ->
 positive_comparision_of_json() ->
 	JsonA = <<"{\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]],\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]]}">>,
 	JsonB = <<"{\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]],\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]]}">>,
-	?assertJsonEqualsOrdered(JsonA, JsonB).
+	?assertJson(JsonA, JsonB).
 
 -test_function([]).
 second_positive_comparision_of_json() ->
@@ -154,7 +154,7 @@ second_positive_comparision_of_json() ->
 		]
 	}">>,
 	%% [{\"c\":40,\"b\":30}] -> [{\"b\":30,\"c\":40}] should make no difference
-	?assertJsonEqualsOrdered(JsonC, JsonD).
+	?assertJson(JsonC, JsonD).
 
 -test_function([]).
 negative_comparision_of_json() ->
@@ -186,8 +186,8 @@ negative_comparision_of_json() ->
 			[{\"b\":3,\"c\":4}]
 		]
 	]">>,
-	JC = ?SORT_JSON(JsonC),
-	JD = ?SORT_JSON(JsonD),
+	JC = ?SORT_PROPERTIES_IN_JSON(JsonC),
+	JD = ?SORT_PROPERTIES_IN_JSON(JsonD),
 	?assertNotEqual(JC, JD).
 
 %% =============================================================================

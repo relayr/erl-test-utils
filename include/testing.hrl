@@ -83,14 +83,14 @@
 				__V -> erlang:error({assert,
 					[{module, ?MODULE},
 						{line, ?LINE},
-						{expeScted, L -- [E]},
+						{expected, L -- [E]},
 						{value, L}]})
 			end
 		end
 )(Element, List))end).
 
 
--define(SORT_JSON(U), begin((
+-define(SORT_PROPERTIES_IN_JSON(U), begin((
 	%For me is tricky - i leaved commented lines for better understanding and code review.
 		fun
 			 SSort([Unsorted]) when is_list(Unsorted) ->
@@ -106,7 +106,7 @@
 				 %?debugFmt("2 R: ~p", [R]),
 				 R;
 
-			 SSort([FirstTuple | RestOfTuples]) when is_tuple(FirstTuple) andalso is_list(RestOfTuples) ->
+			 SSort([FirstTuple | RestOfTuples]) when is_tuple(FirstTuple) ->
 				 %?debugFmt("3 List of many tuples: ~p", [[FirstTuple, RestOfTuples]]),
 				 R = ?SORT(lists:merge([SSort(FirstTuple)], SSort(RestOfTuples))),
 				 %?debugFmt("3 R: ~p", [R]),
@@ -131,31 +131,13 @@
 		 end
 ))(U)end).
 
-
--define(assertJsonEqualsOrdered(Expected, Actual), begin ((
-	fun(Exp, Act) ->
-		StripWhitespacesAndSort = fun
-									  (Binary) when is_binary(Binary) ->
-										  jsx:encode(?SORT_JSON(jsx:decode(Binary)));
-									  (JSX) ->
-										  jsx:encode(?SORT_JSON(JSX))
-								  end,
-		StripedE = StripWhitespacesAndSort(Exp),
-		StripedA = StripWhitespacesAndSort(Act),
-		io:format("~nExpected: ~p", [StripedE]),
-		io:format("~nActual  : ~p", [StripedA]),
-		?assertEqual(StripedE, StripedA)
-	end
-)(Expected, Actual))end).
-
-
 -define(assertJson(Expected, Actual), begin ((
 	fun(E, A) ->
 		StripWhitespaces = fun
 			  (Binary) when is_binary(Binary) ->
-				  jsx:encode(jsx:decode(Binary));
+				  jsx:encode(?SORT_PROPERTIES_IN_JSON(jsx:decode(Binary)));
 			  (JSX) ->
-				  jsx:encode(JSX)
+				  jsx:encode(?SORT_PROPERTIES_IN_JSON(JSX))
 		  end,
 		StripedE = StripWhitespaces(E),
 		StripedA = StripWhitespaces(A),
