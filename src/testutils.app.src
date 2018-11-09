@@ -5,5 +5,4 @@
               {links,[{"GitHub",
                        "https://github.com/relayr/pdm-erl-testutils"}]},
               {registered,[]},
-              {modules, [jsx]},
               {applications,[kernel,stdlib,eunit,meck,proper,pdm_logger]}]}.
