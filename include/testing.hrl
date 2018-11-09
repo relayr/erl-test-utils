@@ -93,19 +93,6 @@
 -define(SORT_PROPERTIES_IN_JSON(U), begin((
 	%For me is tricky - i leaved commented lines for better understanding and code review.
 		fun
-			 SSort([Unsorted]) when is_list(Unsorted) ->
-				 %?debugFmt("1 List of lists: ~p", [Unsorted]),
-				 R = [[SSort(Elem) || Elem <- [Unsorted]]],
-				 %?debugFmt("1 R: ~p", [R]),
-				 R;
-
-			 SSort([Tuple]) when is_tuple(Tuple) ->
-				 %?debugFmt("2 List of one tuple: ~p", [Tuple]),
-				 {TupleName, TupleValue} = Tuple,
-				 R = [{TupleName, SSort(TupleValue)}],
-				 %?debugFmt("2 R: ~p", [R]),
-				 R;
-
 			 SSort([FirstTuple | RestOfTuples]) when is_tuple(FirstTuple) ->
 				 %?debugFmt("3 List of many tuples: ~p", [[FirstTuple, RestOfTuples]]),
 				 R = ?SORT(lists:merge([SSort(FirstTuple)], SSort(RestOfTuples))),
