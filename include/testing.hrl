@@ -105,9 +105,8 @@
 				 %?debugFmt("4 R: ~p", [R]),
 				 R;
 
-			 SSort(Tuple) when is_tuple(Tuple) ->
-				 %?debugFmt("5 Tuple: ~p", [Tuple]),
-				 {AttrName, AttrValue} = Tuple,
+			 SSort({AttrName, AttrValue}) ->
+				 %?debugFmt("5 Tuple: ~p", [{AttrName, AttrValue}]),
 				 R = {AttrName, SSort(AttrValue)},
 				 %?debugFmt("5 R: ~p", [R]),
 				 R;

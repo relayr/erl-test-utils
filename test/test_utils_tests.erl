@@ -155,6 +155,13 @@ second_positive_comparision_of_json() ->
 	?assertJson(JsonC, JsonD).
 
 -test_function([]).
+other_json_sorting_cases() ->
+	EmptyObjectJson = <<"{\"attributes\":{},\"aaa\":5}">>,
+	?assertJson(EmptyObjectJson, EmptyObjectJson),
+	EmptyArrayJson = <<"{\"attributes\":[],\"aaa\":5}">>,
+	?assertJson(EmptyArrayJson, EmptyArrayJson).
+
+-test_function([]).
 negative_comparision_of_json() ->
 	JsonC = <<"[
 		[
