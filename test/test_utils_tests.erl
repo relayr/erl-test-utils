@@ -15,9 +15,7 @@
 %% Tests
 %% =============================================================================
 -ifdef(TEST).
-
--include_lib("proper/include/proper.hrl").
--include_lib("eunit/include/eunit.hrl").
+-include("../include/testing.hrl").
 -compile(export_all).
 -compile({parse_transform, test_parse_transform}).
 
@@ -115,7 +113,81 @@ wait_for_process_stopped() ->
 	ok = test_utils:wait_for_process_stopped(proc),
 	% not existing process
 	ok = test_utils:wait_for_process_stopped(proc2).
-	
+
+
+-test_function([]).
+positive_comparision_of_json() ->
+	JsonA = <<"{\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]],\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]]}">>,
+	JsonB = <<"{\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]],\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]]}">>,
+	?assertJson(JsonA, JsonB).
+
+-test_function([]).
+second_positive_comparision_of_json() ->
+	JsonC = <<"{
+		\"list1\":[
+			1,
+			2,
+			{\"a\":1},
+			[{\"b\":3,\"c\":4}]
+		],
+		\"list2\":[
+			10,
+			20,
+			{\"a\":10},
+			[{\"c\":40,\"b\":30}]
+		]
+	}">>,
+	JsonD = <<"{
+		\"list2\":[
+			10,
+			20,
+			{\"a\":10},
+			[{\"b\":30,\"c\":40}]
+		],
+		\"list1\":[
+			1,
+			2,
+			{\"a\":1},
+			[{\"b\":3,\"c\":4}]
+		]
+	}">>,
+	%% [{\"c\":40,\"b\":30}] -> [{\"b\":30,\"c\":40}] should make no difference
+	?assertJson(JsonC, JsonD).
+
+-test_function([]).
+negative_comparision_of_json() ->
+	JsonC = <<"[
+		[
+			1,
+			2,
+			{\"a\":1},
+			[{\"b\":3,\"c\":4}]
+		],
+		[
+			10,
+			20,
+			{\"a\":10},
+			[{\"c\":40,\"b\":30}]
+		]
+	]">>,
+	JsonD = <<"[
+		[
+			10,
+			20,
+			{\"a\":10},
+			[{\"c\":40,\"b\":30}]
+		],
+		[
+			1,
+			2,
+			{\"a\":1},
+			[{\"b\":3,\"c\":4}]
+		]
+	]">>,
+	JC = ?SORT_PROPERTIES_IN_JSON(JsonC),
+	JD = ?SORT_PROPERTIES_IN_JSON(JsonD),
+	?assertNotEqual(JC, JD).
+
 %% =============================================================================
 %% Property based tests
 %% =============================================================================

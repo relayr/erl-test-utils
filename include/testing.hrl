@@ -89,14 +89,43 @@
 		end
 )(Element, List))end).
 
+
+-define(SORT_PROPERTIES_IN_JSON(U), begin((
+	%For me is tricky - i leaved commented lines for better understanding and code review.
+		fun
+			 SSort([FirstTuple | RestOfTuples]) when is_tuple(FirstTuple) ->
+				 %?debugFmt("3 List of many tuples: ~p", [[FirstTuple, RestOfTuples]]),
+				 R = ?SORT(lists:merge([SSort(FirstTuple)], SSort(RestOfTuples))),
+				 %?debugFmt("3 R: ~p", [R]),
+				 R;
+
+			 SSort(ArrayOfElements) when is_list(ArrayOfElements) ->
+				 %?debugFmt("4 List of many elements: ~p", [ArrayOfElements]),
+				 R = [SSort(E) || E <- ArrayOfElements],
+				 %?debugFmt("4 R: ~p", [R]),
+				 R;
+
+			 SSort(Tuple) when is_tuple(Tuple) ->
+				 %?debugFmt("5 Tuple: ~p", [Tuple]),
+				 {AttrName, AttrValue} = Tuple,
+				 R = {AttrName, SSort(AttrValue)},
+				 %?debugFmt("5 R: ~p", [R]),
+				 R;
+
+			 SSort(Primitive) ->
+				 %?debugFmt("Primitive: ~p", [Primitive]),
+				 Primitive
+		 end
+))(U)end).
+
 -define(assertJson(Expected, Actual), begin ((
 	fun(E, A) ->
 		StripWhitespaces = fun
-			(Binary) when is_binary(Binary) ->
-				jsx:encode(jsx:decode(Binary));
-			(JSX) ->
-				jsx:encode(JSX)
-		end,
+			  (Binary) when is_binary(Binary) ->
+				  jsx:encode(?SORT_PROPERTIES_IN_JSON(jsx:decode(Binary)));
+			  (JSX) ->
+				  jsx:encode(?SORT_PROPERTIES_IN_JSON(JSX))
+		  end,
 		StripedE = StripWhitespaces(E),
 		StripedA = StripWhitespaces(A),
 		io:format("~nExpected: ~p", [StripedE]),
