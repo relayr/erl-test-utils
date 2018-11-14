@@ -162,6 +162,8 @@ other_json_sorting_cases() ->
 	?assertJson(EmptyArrayJson, EmptyArrayJson),
 	MixedKeyJsonTerm = [{bbb, <<"string">>}, {<<"aaa">>, 15}, {42, true}, {41, false}],
 	MixedKeyJson = <<"{\"bbb\":\"string\",\"aaa\":15,\"42\":true,\"41\":false}">>,
+	MixedKeyJsonTerm = [{bbb, <<"string">>}, {<<"aaa">>, 15}, {42, true}, {41, false}],
+	MixedKeyJson = [{<<"bbb">>, <<"string">>}, {aaa, 15}, {42, true}, {<<"41">>, false}],
 	?assertJson(MixedKeyJson, MixedKeyJsonTerm).
 
 -test_function([]).
