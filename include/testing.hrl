@@ -105,6 +105,12 @@
 				 %?debugFmt("4 R: ~p", [R]),
 				 R;
 
+			 SSort({AttrName, AttrValue}) when is_atom(AttrName) ->
+				 SSort({atom_to_binary(AttrName, utf8), AttrValue});
+
+			 SSort({AttrName, AttrValue}) when is_integer(AttrName) ->
+				 SSort({integer_to_binary(AttrName), AttrValue});
+
 			 SSort({AttrName, AttrValue}) ->
 				 %?debugFmt("5 Tuple: ~p", [{AttrName, AttrValue}]),
 				 R = {AttrName, SSort(AttrValue)},
