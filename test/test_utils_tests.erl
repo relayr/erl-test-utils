@@ -160,11 +160,9 @@ other_json_sorting_cases() ->
 	?assertJson(EmptyObjectJson, EmptyObjectJson),
 	EmptyArrayJson = <<"{\"attributes\":[],\"aaa\":5}">>,
 	?assertJson(EmptyArrayJson, EmptyArrayJson),
-	MixedKeyJsonTerm = [{bbb, <<"string">>}, {<<"aaa">>, 15}, {42, true}, {41, false}],
-	MixedKeyJson = <<"{\"bbb\":\"string\",\"aaa\":15,\"42\":true,\"41\":false}">>,
-	MixedKeyJsonTerm = [{bbb, <<"string">>}, {<<"aaa">>, 15}, {42, true}, {41, false}],
-	MixedKeyJson = [{<<"bbb">>, <<"string">>}, {aaa, 15}, {42, true}, {<<"41">>, false}],
-	?assertJson(MixedKeyJson, MixedKeyJsonTerm).
+	MixedKeyJsonTerm1 = [{bbb, <<"string">>}, {<<"aaa">>, 15}, {42, true}, {41, false}],
+	MixedKeyJsonTerm2 = [{<<"bbb">>, <<"string">>}, {aaa, 15}, {42, true}, {<<"41">>, false}],
+	?assertJson(MixedKeyJsonTerm1, MixedKeyJsonTerm2).
 
 -test_function([]).
 negative_comparision_of_json() ->
