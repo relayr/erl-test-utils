@@ -6,6 +6,7 @@
  {<<"process_group">>,{pkg,<<"process_group">>,<<"1.0.9">>},1},
  {<<"proper">>,{pkg,<<"proper">>,<<"1.2.0">>},0},
  {<<"smerl">>,{pkg,<<"smerl">>,<<"0.0.1">>},0},
+ {<<"stream">>,{pkg,<<"stream">>,<<"1.0.7">>},0},
  {<<"time_utils">>,{pkg,<<"time_utils">>,<<"1.0.7">>},1}]}.
 [
 {pkg_hash,[
@@ -16,5 +17,6 @@
  {<<"process_group">>, <<"E57505E5459D28B15B099CF797EA3D528EFDE461E554A15A2A49359D3D452E3C">>},
  {<<"proper">>, <<"1466492385959412A02871505434E72E92765958C60DBA144B43863554B505A4">>},
  {<<"smerl">>, <<"DAC7A866604106C83E7C90D3EE068712CC3C69781B4FC0B6AE09593569EFAB23">>},
+ {<<"stream">>, <<"C5A9B24BECFCC4BE8C8DB83CF4392AC361E11674F55B04DBDA4201FBFF572CB2">>},
  {<<"time_utils">>, <<"48F3F5DD43202280B3F8184092F79EDC5CB4BF75F2B477F5512491A3D2124123">>}]}
 ].
