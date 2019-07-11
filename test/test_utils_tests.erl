@@ -26,7 +26,7 @@
 state_sleep_looper_empty_args() ->
 	LoopTimeout = 1,
 	Count = 3,
-	
+
 	OkFun = fun() ->
 		inc_counter(ok_fun_calls),
 		ok_fun_result
@@ -35,7 +35,7 @@ state_sleep_looper_empty_args() ->
 	?assertEqual(ok_fun_result, Result1),
 	% function exited after first iteration
 	?assertEqual(1, get_counter(ok_fun_calls)),
-	
+
 	ErrorFun = fun() ->
 		inc_counter(error_fun_calls),
 		erlang:error(error_fun_result)
@@ -47,7 +47,7 @@ state_sleep_looper_empty_args() ->
 	end,
 	% function exited after Count iterations
 	?assertEqual(1, get_counter(error_fun_calls)).
-	
+
 -test_function([]).
 % wrong parameters to fun
 state_sleep_looper_wrong_arity() ->
@@ -198,6 +198,23 @@ negative_comparision_of_json() ->
 	JD = ?SORT_PROPERTIES_IN_JSON(JsonD),
 	?assertNotEqual(JC, JD).
 
+-test_function([]).
+meck_assert_called_once_test() ->
+    ?MECK(time_utils, [{get_os_timestamp, 456213}]),
+    ?assertEqual(456213, time_utils:get_os_timestamp()),
+    time_utils:convert_timestamp(452312356),
+    Error =
+        {assertEqual,
+            [
+                {module, test_utils},
+                {line, 318},
+                {expression, call_not_found},
+                {expected, {time_utils, get_os_timestamp, [atomvalue]}},
+                {value, [{time_utils, get_os_timestamp, []},
+                    {time_utils, convert_timestamp, [452312356]}]}
+            ]
+        },
+    ?assertError(Error, test_utils:meck_assert_called_once(time_utils, get_os_timestamp, [atomvalue])).
 %% =============================================================================
 %% Property based tests
 %% =============================================================================

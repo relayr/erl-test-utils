@@ -298,7 +298,28 @@ meck_assert_not_called(Module, Function, Args) ->
 
 -spec meck_assert_num_calls(NumCalls :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: list() | '_') -> ok.
 meck_assert_num_calls(NumCalls, Module, Function, Args) ->
-	?assertEqual(NumCalls, meck:num_calls(Module, Function, Args)),
+	try ?assertEqual(NumCalls, meck:num_calls(Module, Function, Args)) of
+		_ ->
+			ok
+	catch
+		error:_ ->
+			History = meck:history(Module),
+			Value  = lists:filtermap(fun(Tuple) ->
+				{M, _F, _A} = MFA = erlang:element(2, Tuple),
+				if
+					M =:= Module ->
+						{true, MFA};
+					true ->
+						false
+				end
+		 	end,  History),
+			erlang:error({assertEqual,
+				[{module, ?MODULE},
+					{line, ?LINE},
+					{expression, call_not_found},
+					{expected, {Module, Function, Args}},
+					{value, Value}]})
+	end,
 	ok.
 
 shuffle([])     -> [];
