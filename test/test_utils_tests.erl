@@ -199,7 +199,7 @@ negative_comparision_of_json() ->
 	?assertNotEqual(JC, JD).
 
 -test_function([]).
-meck_assert_called_once_test() ->
+meck_assert_called_once_not_found_test() ->
     ?MECK(time_utils, [{get_os_timestamp, 456213}]),
     ?assertEqual(456213, time_utils:get_os_timestamp()),
     time_utils:convert_timestamp(452312356), %% Should be ignored by filter in history invocation
