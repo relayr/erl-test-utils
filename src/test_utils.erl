@@ -305,9 +305,9 @@ meck_assert_num_calls(NumCalls, Module, Function, Args) ->
 		error:_ ->
 			History = meck:history(Module),
 			Value  = lists:filtermap(fun(Tuple) ->
-				{M, _F, _A} = MFA = erlang:element(2, Tuple),
+				{M, F, _A} = MFA = erlang:element(2, Tuple),
 				if
-					M =:= Module ->
+					M =:= Module andalso F =:= Function->
 						{true, MFA};
 					true ->
 						false
@@ -315,7 +315,6 @@ meck_assert_num_calls(NumCalls, Module, Function, Args) ->
 		 	end,  History),
 			erlang:error({assertEqual,
 				[{module, ?MODULE},
-					{line, ?LINE},
 					{expression, call_not_found},
 					{expected, {Module, Function, Args}},
 					{value, Value}]})

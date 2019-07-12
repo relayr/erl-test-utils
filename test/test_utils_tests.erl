@@ -202,16 +202,14 @@ negative_comparision_of_json() ->
 meck_assert_called_once_test() ->
     ?MECK(time_utils, [{get_os_timestamp, 456213}]),
     ?assertEqual(456213, time_utils:get_os_timestamp()),
-    time_utils:convert_timestamp(452312356),
+    time_utils:convert_timestamp(452312356), %% Should be ignored by filter in history invocation
     Error =
         {assertEqual,
             [
                 {module, test_utils},
-                {line, 318},
                 {expression, call_not_found},
                 {expected, {time_utils, get_os_timestamp, [atomvalue]}},
-                {value, [{time_utils, get_os_timestamp, []},
-                    {time_utils, convert_timestamp, [452312356]}]}
+                {value, [{time_utils, get_os_timestamp, []}]}
             ]
         },
     ?assertError(Error, test_utils:meck_assert_called_once(time_utils, get_os_timestamp, [atomvalue])).
