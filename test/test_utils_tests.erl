@@ -16,6 +16,8 @@
 %% =============================================================================
 -ifdef(TEST).
 -include("../include/testing.hrl").
+%%-include("../src/test_utils.erl").
+
 -compile(export_all).
 -compile({parse_transform, test_parse_transform}).
 
@@ -202,17 +204,39 @@ negative_comparision_of_json() ->
 meck_assert_called_once_not_found_test() ->
     ?MECK(time_utils, [{get_os_timestamp, 456213}]),
     ?assertEqual(456213, time_utils:get_os_timestamp()),
-    time_utils:convert_timestamp(452312356), %% Should be ignored by filter in history invocation
+		%% For extra meck history entry. Should be ignored by filter in history invocation.
+		time_utils:convert_timestamp(452312356),
+		Value = [{time_utils, get_os_timestamp, []}],
     Error =
         {assertEqual,
             [
-                {module, test_utils},
-                {expression, call_not_found},
+								{module,test_utils_tests},
+								{line,220},
+                {expression, io_lib:format("~p", [Value])},
                 {expected, {time_utils, get_os_timestamp, [atomvalue]}},
-                {value, [{time_utils, get_os_timestamp, []}]}
+                {value, Value}
             ]
         },
-    ?assertError(Error, test_utils:meck_assert_called_once(time_utils, get_os_timestamp, [atomvalue])).
+    ?assertError(Error, ?assertCalledOnce(time_utils, get_os_timestamp, [atomvalue])).
+
+-test_function([]).
+meck_assert_not_called_test() ->
+    ?MECK(time_utils, [{get_os_timestamp, 456213}]),
+    ?assertEqual(456213, time_utils:get_os_timestamp()),
+		%% For extra meck history entry. Should be ignored by filter in history invocation.
+		time_utils:convert_timestamp(452312356),
+    Value = [{time_utils, get_os_timestamp, []}],
+		Error =
+        {assertEqual,
+            [
+								{module,test_utils_tests},
+								{line, 239},
+                {expression, io_lib:format("~p", [Value])},
+                {expected, []},
+                {value, Value}
+            ]
+        },
+    ?assertError(Error, ?assertNotCalled(time_utils, get_os_timestamp, [])).
 %% =============================================================================
 %% Property based tests
 %% =============================================================================
