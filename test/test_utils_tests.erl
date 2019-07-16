@@ -16,6 +16,8 @@
 %% =============================================================================
 -ifdef(TEST).
 -include("../include/testing.hrl").
+%%-include("../src/test_utils.erl").
+
 -compile(export_all).
 -compile({parse_transform, test_parse_transform}).
 
@@ -26,7 +28,7 @@
 state_sleep_looper_empty_args() ->
 	LoopTimeout = 1,
 	Count = 3,
-	
+
 	OkFun = fun() ->
 		inc_counter(ok_fun_calls),
 		ok_fun_result
@@ -35,7 +37,7 @@ state_sleep_looper_empty_args() ->
 	?assertEqual(ok_fun_result, Result1),
 	% function exited after first iteration
 	?assertEqual(1, get_counter(ok_fun_calls)),
-	
+
 	ErrorFun = fun() ->
 		inc_counter(error_fun_calls),
 		erlang:error(error_fun_result)
@@ -47,7 +49,7 @@ state_sleep_looper_empty_args() ->
 	end,
 	% function exited after Count iterations
 	?assertEqual(1, get_counter(error_fun_calls)).
-	
+
 -test_function([]).
 % wrong parameters to fun
 state_sleep_looper_wrong_arity() ->
@@ -198,6 +200,43 @@ negative_comparision_of_json() ->
 	JD = ?SORT_PROPERTIES_IN_JSON(JsonD),
 	?assertNotEqual(JC, JD).
 
+-test_function([]).
+meck_assert_called_once_not_found_test() ->
+    ?MECK(time_utils, [{get_os_timestamp, 456213}]),
+    ?assertEqual(456213, time_utils:get_os_timestamp()),
+		%% For extra meck history entry. Should be ignored by filter in history invocation.
+		time_utils:convert_timestamp(452312356),
+		Value = [{time_utils, get_os_timestamp, []}],
+    Error =
+        {assertEqual,
+            [
+								{module,test_utils_tests},
+								{line,220},
+                {expression, io_lib:format("~p", [Value])},
+                {expected, {time_utils, get_os_timestamp, [atomvalue]}},
+                {value, Value}
+            ]
+        },
+    ?assertError(Error, ?assertCalledOnce(time_utils, get_os_timestamp, [atomvalue])).
+
+-test_function([]).
+meck_assert_not_called_test() ->
+    ?MECK(time_utils, [{get_os_timestamp, 456213}]),
+    ?assertEqual(456213, time_utils:get_os_timestamp()),
+		%% For extra meck history entry. Should be ignored by filter in history invocation.
+		time_utils:convert_timestamp(452312356),
+    Value = [{time_utils, get_os_timestamp, []}],
+		Error =
+        {assertEqual,
+            [
+								{module,test_utils_tests},
+								{line, 239},
+                {expression, io_lib:format("~p", [Value])},
+                {expected, []},
+                {value, Value}
+            ]
+        },
+    ?assertError(Error, ?assertNotCalled(time_utils, get_os_timestamp, [])).
 %% =============================================================================
 %% Property based tests
 %% =============================================================================
