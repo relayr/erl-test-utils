@@ -142,43 +142,50 @@
 -define(assertEqualUnordered(Expected, Actual), ?assertEqual(?SORT(Expected), ?SORT(Actual))).
 -define(assertNotEqualUnordered(Expected, Actual), ?assertNotEqual(?SORT(Expected), ?SORT(Actual))).
 
--define(assertCalledOnce(Module, Function, Args), ?assertNumCalls(1, Module, Function, Args)).
--define(assertNotCalled(Module, Function, Args), ?assertNumCalls(0, Module, Function, Args)).
+-define(assertCalledOnce(Module, Function, Args), ?assertCalled(1, Module, Function, Args)).
 
--define(assertNumCalls(NumCalls, Module, Function, Args),
-	begin
-	(fun() ->
-			try ?assertEqual(NumCalls, meck:num_calls(Module, Function, Args)) of
-				_ ->
-					ok
-			catch
-				error:_ ->
-					History = meck:history(Module),
-					Value  = lists:filtermap(fun(Tuple) ->
-						{M, F, _A} = MFA = erlang:element(2, Tuple),
-						if
-							M =:= Module andalso F =:= Function->
-								{true, MFA};
-							true ->
-								false
-						end
-				 	end,  History),
-					Expected
-						= case NumCalls of
-								 0 ->
-									 [];
-								 _ ->
-									 {Module, Function, Args}
-							 end,
-					erlang:error({assertEqual,
-						[	{module, ?MODULE},
-							{line, ?LINE},
-							{expression, io_lib:format("~p", [Value])},
-							{expected, Expected},
-							{value, Value}]})
-			end
-		end)()
-	end
+-define(assertNotCalled(Module, Function), ?assertNotCalled(Module, Function, '_')).
+-define(assertNotCalled(Module, Function, Args), ?assertCalled(0, Module, Function, Args)).
+
+-define(assertCalled(NumCalls, Module, Function, Args),
+    (fun() ->
+        try ?assertEqual(NumCalls, meck:num_calls(Module, Function, Args)) of
+            _ ->
+                ok
+        catch
+            error:_ ->
+                History = lists:filtermap(fun(Tuple) ->
+                    {M, F, _A} = MFA = erlang:element(2, Tuple),
+                    if M =:= Module andalso F =:= Function->
+                        {true, MFA};
+                    true ->
+                        false
+                    end
+                end, meck:history(Module)),
+                Expected =
+                    case NumCalls of
+                        0 ->
+                            not_called;
+                        _ ->
+                            {Module, Function, Args}
+                    end,
+                ArgsStr =
+					if Args =:= '_' ->
+						"...";
+					true ->
+						string:join([io_lib:format("~p", [Arg]) || Arg <- Args], ",")
+					end,
+                erlang:error({assert, [
+                    {module, ?MODULE},
+                    {line, ?LINE},
+                    {matcher, lists:flatten(io_lib:format(
+                        "~s:~s(~s) called ~p time(s)", [Module, Function, ArgsStr, NumCalls])
+                    )},
+                    {expected, Expected},
+                    {actual, History}
+                ]})
+        end
+    end)()
 ).
 
 -endif.

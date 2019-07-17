@@ -21,6 +21,8 @@
 -compile(export_all).
 -compile({parse_transform, test_parse_transform}).
 
+-define(TS, 1563443663000).
+
 %% =============================================================================
 %% Tests
 %% =============================================================================
@@ -202,41 +204,74 @@ negative_comparision_of_json() ->
 
 -test_function([]).
 meck_assert_called_once_not_found_test() ->
-    ?MECK(time_utils, [{get_os_timestamp, 456213}]),
-    ?assertEqual(456213, time_utils:get_os_timestamp()),
-		%% For extra meck history entry. Should be ignored by filter in history invocation.
-		time_utils:convert_timestamp(452312356),
-		Value = [{time_utils, get_os_timestamp, []}],
+	ok = mock_ts_utils(),
+	_ = ts_utils:get_os_timestamp(secs),
+	_ = ts_utils:get_os_timestamp(millis),
+    %% For extra meck history entry. Should be ignored by filter in history invocation.
+    _ = ts_utils:convert_timestamp(452312356),
     Error =
-        {assertEqual,
-            [
-								{module,test_utils_tests},
-								{line,220},
-                {expression, io_lib:format("~p", [Value])},
-                {expected, {time_utils, get_os_timestamp, [atomvalue]}},
-                {value, Value}
-            ]
-        },
-    ?assertError(Error, ?assertCalledOnce(time_utils, get_os_timestamp, [atomvalue])).
+        {assert, [
+			{module,test_utils_tests},
+			{line, 223},
+			{matcher, "ts_utils:get_os_timestamp(utc,millis) called 1 time(s)"},
+			{expected, {ts_utils, get_os_timestamp, [utc, millis]}},
+			{actual, [
+				{ts_utils, get_os_timestamp, [secs]},
+				{ts_utils, get_os_timestamp, [millis]}
+			]}
+		]},
+    ?assertError(Error, ?assertCalledOnce(ts_utils, get_os_timestamp, [utc, millis])).
 
 -test_function([]).
 meck_assert_not_called_test() ->
-    ?MECK(time_utils, [{get_os_timestamp, 456213}]),
-    ?assertEqual(456213, time_utils:get_os_timestamp()),
-		%% For extra meck history entry. Should be ignored by filter in history invocation.
-		time_utils:convert_timestamp(452312356),
-    Value = [{time_utils, get_os_timestamp, []}],
-		Error =
-        {assertEqual,
-            [
-								{module,test_utils_tests},
-								{line, 239},
-                {expression, io_lib:format("~p", [Value])},
-                {expected, []},
-                {value, Value}
-            ]
-        },
-    ?assertError(Error, ?assertNotCalled(time_utils, get_os_timestamp, [])).
+	ok = mock_ts_utils(),
+	_ = ts_utils:get_os_timestamp(secs),
+	_ = ts_utils:get_os_timestamp(millis),
+	%% For extra meck history entry. Should be ignored by filter in history invocation.
+	_ = ts_utils:convert_timestamp(452312356),
+	Error =
+		{assert, [
+			{module,test_utils_tests},
+			{line, 243},
+			{matcher, "ts_utils:get_os_timestamp(...) called 0 time(s)"},
+			{expected, not_called},
+			{actual, [
+				{ts_utils, get_os_timestamp, [secs]},
+				{ts_utils, get_os_timestamp, [millis]}
+			]}
+		]},
+	?assertError(Error, ?assertNotCalled(ts_utils, get_os_timestamp)).
+
+-test_function([]).
+meck_assert_not_called_with_args_test() ->
+	ok = mock_ts_utils(),
+	_ = ts_utils:get_os_timestamp(secs),
+	_ = ts_utils:get_os_timestamp(millis),
+    %% For extra meck history entry. Should be ignored by filter in history invocation.
+    _ = ts_utils:convert_timestamp(452312356),
+	Error =
+		{assert, [
+			{module,test_utils_tests},
+			{line, 263},
+			{matcher, "ts_utils:get_os_timestamp(millis) called 0 time(s)"},
+			{expected, not_called},
+			{actual, [
+				{ts_utils, get_os_timestamp, [secs]},
+				{ts_utils, get_os_timestamp, [millis]}
+			]}
+		]},
+    ?assertError(Error, ?assertNotCalled(ts_utils, get_os_timestamp, [millis])).
+
+mock_ts_utils() ->
+	% 'ts_utils' module is created on the fly by meck
+	?MECK(ts_utils, [
+		{get_os_timestamp, fun
+			(secs) -> ?TS div 1000;
+			(millis) ->?TS
+		end},
+		{convert_timestamp, fun(T) -> T * 1000 end}
+	]).
+
 %% =============================================================================
 %% Property based tests
 %% =============================================================================
