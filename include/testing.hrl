@@ -147,8 +147,8 @@
 -define(assertNotCalled(Module, Function), ?assertNotCalled(Module, Function, '_')).
 -define(assertNotCalled(Module, Function, Args), ?assertCalled(0, Module, Function, Args)).
 
--define(assertCalled(NumCalls, Module, Function, Args),
-    (fun() ->
+-define(assertCalled(NumCalls, ModuleName, FunctionName, ArgsList),
+    (fun(Module, Function, Args) ->
         try ?assertEqual(NumCalls, meck:num_calls(Module, Function, Args)) of
             _ ->
                 ok
@@ -185,7 +185,7 @@
                     {actual, History}
                 ]})
         end
-    end)()
+    end)(ModuleName, FunctionName, ArgsList)
 ).
 
 -endif.
