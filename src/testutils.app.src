@@ -1,6 +1,6 @@
 {application,testutils,
              [{description,"Test utilities for Proximetry usage"},
-              {vsn, "1.1.3"},
+              {vsn, "1.1.4"},
               {licenses,["MIT"]},
               {links,[{"GitHub",
                        "https://github.com/relayr/pdm-erl-testutils"}]},
