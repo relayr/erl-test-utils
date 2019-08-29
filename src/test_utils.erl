@@ -28,9 +28,6 @@
 	unmeck_module/1,
 	meck_call_args/2,
 	meck_last_call_args/2,
-	meck_assert_called_once/3,
-	meck_assert_not_called/2,
-	meck_assert_not_called/3,
 	meck_num_calls/2,
 	shuffle/1,
     list_containing/1,
@@ -283,27 +280,6 @@ meck_last_call_args(Module, Function) ->
 		LastCallArgs = lists:last(CallArgs),
 		{ok, [LastCallArgs]}
 	end.
-
-%% @deprecated Please use instead macro: `?assertCalledOnce(Module, Function, Args)`
--spec meck_assert_called_once(Module :: atom(), Function :: atom(), Args :: list() | '_') -> ok.
-meck_assert_called_once(Module, Function, Args) ->
-	meck_assert_num_calls(1, Module, Function, Args).
-
-%% @deprecated Please use instead macro: `?assertNotCalled(Module, Function, Args)`
--spec meck_assert_not_called(Module :: atom(), Function :: atom()) -> ok.
-meck_assert_not_called(Module, Function) ->
-	meck_assert_not_called(Module, Function, '_').
-
-%% @deprecated Please use instead macro: `?assertNotCalled(Module, Function, Args)`
--spec meck_assert_not_called(Module :: atom(), Function :: atom(), Args :: list() | '_') -> ok.
-meck_assert_not_called(Module, Function, Args) ->
-	meck_assert_num_calls(0, Module, Function, Args).
-
-%% @deprecated Please use instead macro: `?assertNumCalls(NumCalls, Function, Args)`
--spec meck_assert_num_calls(NumCalls :: non_neg_integer(), Module :: atom(), Function :: atom(), Args :: list() | '_') -> ok.
-meck_assert_num_calls(NumCalls, Module, Function, Args) ->
-	?assertEqual(NumCalls, meck:num_calls(Module, Function, Args)).
-
 
 shuffle([])     -> [];
 shuffle([Elem]) -> [Elem];
