@@ -7,8 +7,6 @@
 -include("prop_testing.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--import(test_utils, [shuffle/1]).
-
 -compile(export_all).
 -compile({parse_transform, test_parse_transform}).
 
@@ -18,8 +16,6 @@
         test_utils:state_sleep_looper(Fun, Args, LoopTimeout, Count)).
 -define(WAIT_FOR_PROCESS_STOPPED(ProcessRegisteredNameOrID),
         test_utils:wait_for_process_stopped(ProcessRegisteredNameOrID)).
--define(RECOMPILE(Module, FunctionDefs),
-        test_utils:recompile_module(Module, FunctionDefs)).
 -define(MECK(Module, Funs), test_utils:meck_module(Module, Funs)).
 -define(MECK_LOOP(Module, Funs), test_utils:meck_loop_module(Module, Funs)).
 -define(MECK_RESET(Module), meck:reset(Module)).
@@ -27,9 +23,6 @@
 -define(UNMECK, test_utils:unmeck_modules()).
 -define(UNMECK(Module), test_utils:unmeck_module(Module)).
 -define(SORT(List), lists:sort(List)).
-
--define(IDENTITY, fun(X) -> X end).
--define(IDENTITY_OK, fun(X) -> {ok, X} end).
 
 -define(assertContains(Element, List), begin ((
     fun(E, L) ->
