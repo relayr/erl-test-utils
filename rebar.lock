@@ -5,6 +5,7 @@
  {<<"pdm_logger">>,{pkg,<<"pdm_logger">>,<<"3.0.3">>},0},
  {<<"process_group">>,{pkg,<<"process_group">>,<<"1.0.14">>},1},
  {<<"proper">>,{pkg,<<"proper">>,<<"1.2.0">>},0},
+ {<<"smerl">>,{pkg,<<"smerl">>,<<"0.0.1">>},0},
  {<<"stream">>,{pkg,<<"stream">>,<<"1.0.9">>},0},
  {<<"time_utils">>,{pkg,<<"time_utils">>,<<"1.0.13">>},1}]}.
 [
@@ -15,6 +16,7 @@
  {<<"pdm_logger">>, <<"123D1A1AA6A6A5EAE9DC687ED151F4AEE0BE2E43FCCE55300F3E3BE8B26B51C5">>},
  {<<"process_group">>, <<"4326FD1267F16572F636F338B12F36ED872AE3EB12D26F6032B8124A6E95B523">>},
  {<<"proper">>, <<"1466492385959412A02871505434E72E92765958C60DBA144B43863554B505A4">>},
+ {<<"smerl">>, <<"DAC7A866604106C83E7C90D3EE068712CC3C69781B4FC0B6AE09593569EFAB23">>},
  {<<"stream">>, <<"2322339DC7FCDECB5509B48F8A0FE5BACBDA439C342AD10DBCC40708720FF45A">>},
  {<<"time_utils">>, <<"0AF54E787F6D3A7144F5F814709A6F95BFF05BD385B7D2561A7D7D131D75EC3D">>}]}
 ].
