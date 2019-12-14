@@ -20,7 +20,6 @@
 	state_sleep_looper/4,
 	wait_for_process_stopped/1,
 	wait_for_process_stopped/2,
-	recompile_module/2,
 	stop_processes/1,
     meck_module/2,
 	meck_loop_module/2,
@@ -30,7 +29,6 @@
 	meck_last_call_args/2,
 	meck_num_calls/2,
 	shuffle/1,
-    list_containing/1,
     generator/1,
     generator/2
 ]).
@@ -116,31 +114,6 @@ wait_until_name_is_unregistered(ProcessName, Timeout) ->
             end
         end,
         [ProcessName], LoopCount, LoopTimeout).
-
-%%------------------------------------------------------------------------------
-%% @spec recompile_module(Module, FunctionDefs) -> ok
-%% where
-%%		Module = atom()
-%%		FunctionDefs = [list()]
-%% @doc Replace functions definitions in a module.
-%% @end
-%%------------------------------------------------------------------------------
-recompile_module(Module, FunctionDefs) when is_atom(Module), is_list(FunctionDefs) ->
-	{Module, _Bin, ModuleFileName} = code:get_object_code(Module),
-	ModuleDir = filename:dirname(ModuleFileName),
-	ok = code:unstick_dir(ModuleDir),
-	{ok, ModMetaData} = smerl:for_module(Module),
-	{ok, NewModMetaData} = recompile_module(Module, ModMetaData, FunctionDefs),
-	ok = smerl:compile(NewModMetaData, [export_all
-									   %, {d,'TEST'} - doesn't work
-									   ]),
-	ok = code:stick_dir(ModuleDir).
-
-recompile_module(_Module, ModMetaData, []) ->
-	{ok, ModMetaData};
-recompile_module(Module, ModMetaData, [FunctionDef | RestOfFunctionDefs]) ->
-	{ok, NewModMetaData} = smerl:replace_func(ModMetaData, FunctionDef),
-	recompile_module(Module, NewModMetaData, RestOfFunctionDefs).
 
 % @doc Stops processes in list and waits for their termination. The list can contain names or pids.
 -spec stop_processes(Processes :: [atom() | pid()]) -> ok.
@@ -295,12 +268,6 @@ nth_rest(N, List) -> nth_rest(N, List, []).
 
 nth_rest(1, [E|List], Prefix) -> {E, Prefix ++ List};
 nth_rest(N, [E|List], Prefix) -> nth_rest(N - 1, List, [E|Prefix]).
-
-list_containing(ElementsToBeInActual) when is_list(ElementsToBeInActual) ->
-    fun(Actual) ->
-        F = fun(E, Acc) -> Acc and lists:member(E, Actual) end,
-        lists:foldl(F, true, ElementsToBeInActual)
-    end.
 
 -spec generator(list(N), N) -> fun(() -> N).
 generator(List, LastItem) ->
