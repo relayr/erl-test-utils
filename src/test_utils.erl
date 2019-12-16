@@ -1,6 +1,5 @@
 %%------------------------------------------------------------------------------
 %% @author jodias
-%% @copyright Proximetry Inc. 2010
 %% @version 1.0
 %% @doc Various utilities for testing.
 %% @end

@@ -6,10 +6,6 @@
 
 -include_lib("proper/include/proper.hrl").
 
--compile({parse_transform, prop_test_parse_transform}).
-
--define(PROP_TEST_FUN(), -prop_test_function([])).
-
 % QuickCheck generators
 -define(EQC_STRING_GEN, non_empty(list(choose(32,126)))).   % printable ASCII characters
 -define(EQC_ATOM_GEN, ?LET(Name, ?EQC_STRING_GEN, list_to_atom(Name))).
