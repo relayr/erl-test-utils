@@ -16,18 +16,14 @@
 %% =============================================================================
 -ifdef(TEST).
 -include("../include/testing.hrl").
-%%-include("../src/test_utils.erl").
-
--compile(export_all).
--compile({parse_transform, test_parse_transform}).
 
 -define(TS, 1563443663000).
 
 %% =============================================================================
 %% Tests
 %% =============================================================================
--test_function([]).
-state_sleep_looper_empty_args() ->
+
+state_sleep_looper_empty_args_test() ->
     LoopTimeout = 1,
     Count = 3,
 
@@ -52,9 +48,8 @@ state_sleep_looper_empty_args() ->
     % function exited after Count iterations
     ?assertEqual(1, get_counter(error_fun_calls)).
 
--test_function([]).
 % wrong parameters to fun
-state_sleep_looper_wrong_arity() ->
+state_sleep_looper_wrong_arity_test() ->
     set_counter(function_calls, 0),
     Fun = fun(arg1, arg2) ->
         inc_counter(function_calls),
@@ -69,8 +64,7 @@ state_sleep_looper_wrong_arity() ->
     % function was never called
     ?assertEqual(0, get_counter(function_calls)).
 
--test_function([]).
-state_sleep_looper_args() ->
+state_sleep_looper_args_test() ->
     LoopTimeout = 1,
     Count = 3,
     ExpExc = {assert, info},
@@ -105,8 +99,7 @@ state_sleep_looper_args() ->
     % function exited after Count iterations
     ?assertEqual(Count, get_counter(function_calls)).
 
--test_function([]).
-wait_for_process_stopped() ->
+wait_for_process_stopped_test() ->
     PID = spawn(fun() -> receive stop -> ok end end),
     true = register(proc, PID),
     ErrorMsg = lists:flatten(io_lib:format("Process ~p wasn't stopped!", [PID])),
@@ -118,15 +111,12 @@ wait_for_process_stopped() ->
     % not existing process
     ok = test_utils:wait_for_process_stopped(proc2).
 
-
--test_function([]).
-positive_comparision_of_json() ->
+positive_comparision_of_json_test() ->
     JsonA = <<"{\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]],\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]]}">>,
     JsonB = <<"{\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]],\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]]}">>,
     ?assertJson(JsonA, JsonB).
 
--test_function([]).
-second_positive_comparision_of_json() ->
+second_positive_comparision_of_json_test() ->
     JsonC = <<"{
         \"list1\":[
             1,
@@ -158,8 +148,7 @@ second_positive_comparision_of_json() ->
     %% [{\"c\":40,\"b\":30}] -> [{\"b\":30,\"c\":40}] should make no difference
     ?assertJson(JsonC, JsonD).
 
--test_function([]).
-other_json_sorting_cases() ->
+other_json_sorting_cases_test() ->
     EmptyObjectJson = <<"{\"attributes\":{},\"aaa\":5}">>,
     ?assertJson(EmptyObjectJson, EmptyObjectJson),
     EmptyArrayJson = <<"{\"attributes\":[],\"aaa\":5}">>,
@@ -168,8 +157,7 @@ other_json_sorting_cases() ->
     MixedKeyJsonTerm2 = [{<<"bbb">>, <<"string">>}, {aaa, 15}, {42, true}, {<<"41">>, false}],
     ?assertJson(MixedKeyJsonTerm1, MixedKeyJsonTerm2).
 
--test_function([]).
-negative_comparision_of_json() ->
+negative_comparision_of_json_test() ->
     JsonC = <<"[
         [
             1,
@@ -202,7 +190,6 @@ negative_comparision_of_json() ->
     JD = ?SORT_PROPERTIES_IN_JSON(JsonD),
     ?assertNotEqual(JC, JD).
 
--test_function([]).
 meck_assert_called_once_not_found_test() ->
     ok = mock_ts_utils(),
     _ = ts_utils:get_os_timestamp(secs),
@@ -212,7 +199,7 @@ meck_assert_called_once_not_found_test() ->
     Error =
         {assert, [
             {module,test_utils_tests},
-            {line, 223},
+            {line, 210},
             {matcher, "ts_utils:get_os_timestamp(utc,millis) called 1 time(s)"},
             {expected, {ts_utils, get_os_timestamp, [utc, millis]}},
             {actual, [
@@ -222,7 +209,6 @@ meck_assert_called_once_not_found_test() ->
         ]},
     ?assertError(Error, ?assertCalledOnce(ts_utils, get_os_timestamp, [utc, millis])).
 
--test_function([]).
 meck_assert_not_called_test() ->
     ok = mock_ts_utils(),
     _ = ts_utils:get_os_timestamp(secs),
@@ -232,7 +218,7 @@ meck_assert_not_called_test() ->
     Error =
         {assert, [
             {module,test_utils_tests},
-            {line, 243},
+            {line, 229},
             {matcher, "ts_utils:get_os_timestamp(...) called 0 time(s)"},
             {expected, not_called},
             {actual, [
@@ -242,7 +228,6 @@ meck_assert_not_called_test() ->
         ]},
     ?assertError(Error, ?assertNotCalled(ts_utils, get_os_timestamp)).
 
--test_function([]).
 meck_assert_not_called_with_args_test() ->
     ok = mock_ts_utils(),
     _ = ts_utils:get_os_timestamp(secs),
@@ -252,7 +237,7 @@ meck_assert_not_called_with_args_test() ->
     Error =
         {assert, [
             {module,test_utils_tests},
-            {line, 263},
+            {line, 248},
             {matcher, "ts_utils:get_os_timestamp(millis) called 0 time(s)"},
             {expected, not_called},
             {actual, [
@@ -264,7 +249,7 @@ meck_assert_not_called_with_args_test() ->
 
 mock_ts_utils() ->
     % 'ts_utils' module is created on the fly by meck
-    ?MECK(ts_utils, [
+    ?MECK_AND_RESET(ts_utils, [
         {get_os_timestamp, fun
             (secs) -> ?TS div 1000;
             (millis) ->?TS

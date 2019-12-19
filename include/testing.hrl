@@ -8,9 +8,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -compile(export_all).
--compile({parse_transform, test_parse_transform}).
 
--define(TEST_FUN(), -test_function([])).
 -define(TEST_CASE(FunName), {atom_to_list(FunName), fun FunName/0}).
 -define(LOOPER(Fun, Args, LoopTimeout, Count), 
         test_utils:state_sleep_looper(Fun, Args, LoopTimeout, Count)).

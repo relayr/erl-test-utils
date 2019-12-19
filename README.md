@@ -1,3 +1,6 @@
-# testutils
+# test_utils
 
-[![Build](https://status.pdmbuilds.proximetry.com/packages/erl_testutils/versions/master/build/badge)](https://status.pdmbuilds.proximetry.com/packages/erl_testutils/versions/master/build/link) [![Hex.pm](https://img.shields.io/badge/hex-1.1.12-aa66cc.svg)](https://hex.pdmbuilds.proximetry.com/packages/testutils/1.1.12) [![Coverage](https://status.pdmbuilds.proximetry.com/packages/erl_testutils/versions/1.0.1/coverage/badge)](https://status.pdmbuilds.proximetry.com/packages/erl_testutils/versions/1.0.1/coverage/link)
+[![Build Status](https://travis-ci.org/relayr/erl-test-utils.svg?branch=master)](https://travis-ci.org/relayr/erl-test-utils) [![Coverage Status](https://coveralls.io/repos/github/relayr/erl-test-utils/badge.svg?branch=master)](https://coveralls.io/github/relayr/erl-test-utils?branch=master)
+
+## Description
+
