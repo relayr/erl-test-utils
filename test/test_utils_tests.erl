@@ -192,6 +192,7 @@ negative_comparision_of_json_test() ->
 
 meck_assert_called_once_not_found_test() ->
     ok = mock_ts_utils(),
+    _ = ts_utils:get_os_timestamp(),
     _ = ts_utils:get_os_timestamp(secs),
     _ = ts_utils:get_os_timestamp(millis),
     %% For extra meck history entry. Should be ignored by filter in history invocation.
@@ -199,18 +200,21 @@ meck_assert_called_once_not_found_test() ->
     Error =
         {assert, [
             {module,test_utils_tests},
-            {line, 210},
+            {line, 212},
             {matcher, "ts_utils:get_os_timestamp(utc,millis) called 1 time(s)"},
             {expected, {ts_utils, get_os_timestamp, [utc, millis]}},
             {actual, [
+                {ts_utils, get_os_timestamp, []},
                 {ts_utils, get_os_timestamp, [secs]},
                 {ts_utils, get_os_timestamp, [millis]}
             ]}
         ]},
-    ?assertError(Error, ?assertCalledOnce(ts_utils, get_os_timestamp, [utc, millis])).
+    ?assertError(Error, ?assertCalledOnce(ts_utils, get_os_timestamp, [utc, millis])),
+    ?assertEqual(3, test_utils:meck_num_calls(ts_utils, get_os_timestamp)).
 
 meck_assert_not_called_test() ->
     ok = mock_ts_utils(),
+    _ = ts_utils:get_os_timestamp(),
     _ = ts_utils:get_os_timestamp(secs),
     _ = ts_utils:get_os_timestamp(millis),
     %% For extra meck history entry. Should be ignored by filter in history invocation.
@@ -218,18 +222,21 @@ meck_assert_not_called_test() ->
     Error =
         {assert, [
             {module,test_utils_tests},
-            {line, 229},
+            {line, 234},
             {matcher, "ts_utils:get_os_timestamp(...) called 0 time(s)"},
             {expected, not_called},
             {actual, [
+                {ts_utils, get_os_timestamp, []},
                 {ts_utils, get_os_timestamp, [secs]},
                 {ts_utils, get_os_timestamp, [millis]}
             ]}
         ]},
-    ?assertError(Error, ?assertNotCalled(ts_utils, get_os_timestamp)).
+    ?assertError(Error, ?assertNotCalled(ts_utils, get_os_timestamp)),
+    ?assertEqual(3, test_utils:meck_num_calls(ts_utils, get_os_timestamp)).
 
 meck_assert_not_called_with_args_test() ->
     ok = mock_ts_utils(),
+    _ = ts_utils:get_os_timestamp(),
     _ = ts_utils:get_os_timestamp(secs),
     _ = ts_utils:get_os_timestamp(millis),
     %% For extra meck history entry. Should be ignored by filter in history invocation.
@@ -237,25 +244,83 @@ meck_assert_not_called_with_args_test() ->
     Error =
         {assert, [
             {module,test_utils_tests},
-            {line, 248},
+            {line, 256},
             {matcher, "ts_utils:get_os_timestamp(millis) called 0 time(s)"},
             {expected, not_called},
             {actual, [
+                {ts_utils, get_os_timestamp, []},
                 {ts_utils, get_os_timestamp, [secs]},
                 {ts_utils, get_os_timestamp, [millis]}
             ]}
         ]},
-    ?assertError(Error, ?assertNotCalled(ts_utils, get_os_timestamp, [millis])).
+    ?assertError(Error, ?assertNotCalled(ts_utils, get_os_timestamp, [millis])),
+    ?assertEqual(3, test_utils:meck_num_calls(ts_utils, get_os_timestamp)).
 
 mock_ts_utils() ->
     % 'ts_utils' module is created on the fly by meck
     ?MECK_AND_RESET(ts_utils, [
+        {get_os_timestamp, ?TS},
         {get_os_timestamp, fun
             (secs) -> ?TS div 1000;
             (millis) ->?TS
         end},
         {convert_timestamp, fun(T) -> T * 1000 end}
     ]).
+
+mock_loop_module_test() ->
+    ?MECK_LOOP(ts_utils, [
+        {get_unix_timestamp, [1000, 2000, 3000]}
+    ]),
+    ?assertEqual(1000, ts_utils:get_unix_timestamp()),
+    ?assertEqual(2000, ts_utils:get_unix_timestamp()),
+    ?assertEqual(3000, ts_utils:get_unix_timestamp()),
+    ?assertEqual(1000, ts_utils:get_unix_timestamp()).
+
+stop_processes_test() ->
+    PID1 = spawn(fun() -> receive stop -> ok end end),
+    PID2 = spawn(fun() -> receive stop -> ok end end),
+    PID3 = spawn(fun() -> receive stop -> ok end end),
+    true = register(proc3, PID3),
+    _Ref1 = erlang:monitor(process, PID1),
+    Ref2 = erlang:monitor(process, PID2),
+    Ref3 = erlang:monitor(process, PID3),
+    % stop process identified by PID and name
+    ok = test_utils:stop_processes([
+        proc1,  % no process with such name
+        PID2,
+        PID2,   % another process with the same PID
+        proc3,
+        list_to_pid("<0.5701.2>")   % not existing process
+    ]),
+    receive {'DOWN', R2, process, P2, _} ->
+        ?assertEqual(Ref2, R2),
+        ?assertEqual(PID2, P2)
+    after 1000 ->
+        erlang:error(not_stopped)
+    end,
+    receive {'DOWN', R3, process, P3, _} ->
+        ?assertEqual(Ref3, R3),
+        ?assertEqual(PID3, P3)
+    after 1000 ->
+        erlang:error(not_stopped)
+    end,
+    % no other process should be stopped
+    receive Msg ->
+        erlang:error({stopped, Msg})
+    after 0 ->
+        ok
+    end.
+
+shuffle_test() ->
+    ?assertEqual([], test_utils:shuffle([])),
+    ?assertEqual([1], test_utils:shuffle([1])),
+    ?assertEqual([2,2,2], test_utils:shuffle([2,2,2])),
+    % random generated list
+    ListLen = 10,
+    RandomList = [rand:uniform(10) || _ <- lists:seq(1, ListLen)],
+    ShuffledList = test_utils:shuffle(RandomList),
+    ?assertEqual(ListLen, length(ShuffledList)),
+    ?assertEqual(lists:sort(RandomList), lists:sort(ShuffledList)).
 
 %% =============================================================================
 %% Property based tests

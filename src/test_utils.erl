@@ -130,7 +130,7 @@ stop_process(Name) when is_atom(Name) ->
     end;
 stop_process(Pid) when is_pid(Pid) ->
     try
-    true = erlang:unlink(Pid),
+        true = erlang:unlink(Pid),
         erlang:exit(Pid, kill)
     catch 
         _Class:_Reason ->
@@ -143,9 +143,10 @@ stop_process(Pid) when is_pid(Pid) ->
 meck_module(Module, Funs) ->
     ok = meck_module_init(Module),
     lists:foreach(
-           fun(FunctionSpec) -> 
-                   ok = meck_function(Module, FunctionSpec)
-           end, Funs).
+        fun(FunctionSpec) ->
+            ok = meck_function(Module, FunctionSpec)
+        end,
+    Funs).
 
 meck_module_init(Module) ->
     DefaultOptions = [passthrough, non_strict],
@@ -176,7 +177,7 @@ meck_loop_module(Module, Funs) ->
         Arities = get_function_arities(Module, FunctionName),
         _ = [ok = meck:loop(Module, FunctionName, Arity, FunResults) || Arity <- Arities]
       end
-      end, Funs).
+    end, Funs).
 
 meck_function(Module, {FunctionName, Fun}) when is_function(Fun) ->
     meck:expect(Module, FunctionName, Fun);
