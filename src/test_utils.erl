@@ -27,9 +27,7 @@
     meck_call_args/2,
     meck_last_call_args/2,
     meck_num_calls/2,
-    shuffle/1,
-    generator/1,
-    generator/2
+    shuffle/1
 ]).
 
 %% =============================================================================
@@ -267,65 +265,3 @@ nth_rest(N, List) -> nth_rest(N, List, []).
 
 nth_rest(1, [E|List], Prefix) -> {E, Prefix ++ List};
 nth_rest(N, [E|List], Prefix) -> nth_rest(N - 1, List, [E|Prefix]).
-
--spec generator(list(N), N) -> fun(() -> N).
-generator(List, LastItem) ->
-    F = fun
-            Loop([H | T]) ->
-                receive
-                    {get, Ref, From} ->
-                        From ! {result, Ref, H},
-                        ok
-                end,
-                Loop(T);
-            Loop([]) ->
-                ok
-        end,
-    Pid = spawn(fun() -> F(List) end),
-    fun() ->
-        case process_info(Pid) of
-            undefined -> LastItem;
-            _ ->
-                Ref = make_ref(),
-                Pid ! {get, Ref, self()},
-                receive
-                    {result, Ref, Result} -> Result
-                end
-        end
-    end.
-
--spec generator(stream:stream(N)) -> fun((_) -> N).
-generator(Stream) ->
-    F = fun Loop(Stream) ->
-        receive
-            {get, Ref, From} ->
-                {H, T} = Stream(),
-                From ! {result, Ref, H},
-                Loop(T);
-            {close, Ref, From} ->
-                From ! {result, Ref, ok}
-        end
-        end,
-    Pid = spawn_link(fun() -> F(Stream) end),
-    fun
-        (get) ->
-            case process_info(Pid) of
-                undefined -> closed;
-                _ ->
-                    Ref = make_ref(),
-                    Pid ! {get, Ref, self()},
-                    receive
-                        {result, Ref, Result} -> Result
-                    end
-            end;
-        (close) ->
-            case process_info(Pid) of
-                undefined -> ok;
-                _ ->
-                    Ref = make_ref(),
-                    Pid ! {close, Ref, self()},
-                    receive
-                        {result, Ref, Result} -> Result
-                    end
-            end
-    end.
