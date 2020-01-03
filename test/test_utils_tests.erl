@@ -267,7 +267,7 @@ mock_ts_utils() ->
         {convert_timestamp, fun(T) -> T * 1000 end}
     ]).
 
-mock_loop_module_test() ->
+meck_loop_module_test() ->
     ?MECK_LOOP(ts_utils, [
         {get_unix_timestamp, [1000, 2000, 3000]}
     ]),
@@ -275,6 +275,16 @@ mock_loop_module_test() ->
     ?assertEqual(2000, ts_utils:get_unix_timestamp()),
     ?assertEqual(3000, ts_utils:get_unix_timestamp()),
     ?assertEqual(1000, ts_utils:get_unix_timestamp()).
+
+meck_call_args_test() ->
+    ok = mock_ts_utils(),
+    ?assertEqual({ok, []}, test_utils:meck_last_call_args(ts_utils, get_os_timestamp)),
+    ?assertEqual({ok, []}, test_utils:meck_call_args(ts_utils, get_os_timestamp)),
+    _ = ts_utils:get_os_timestamp(),
+    _ = ts_utils:get_os_timestamp(secs),
+    _ = ts_utils:get_os_timestamp(millis),
+    ?assertEqual({ok, [[millis]]}, test_utils:meck_last_call_args(ts_utils, get_os_timestamp)),
+    ?assertEqual({ok, [[],[secs],[millis]]}, test_utils:meck_call_args(ts_utils, get_os_timestamp)).
 
 stop_processes_test() ->
     PID1 = spawn(fun() -> receive stop -> ok end end),
