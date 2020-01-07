@@ -196,38 +196,10 @@ get_function_arities(Module, FunctionName) ->
         Arities
     end.
 
-create_fun_with_arity(0, FunResult) ->
-    fun() -> FunResult end;
-create_fun_with_arity(1, FunResult) ->
-    fun(_) -> FunResult end;
-create_fun_with_arity(2, FunResult) ->
-    fun(_, _) -> FunResult end;
-create_fun_with_arity(3, FunResult) ->
-    fun(_, _, _) -> FunResult end;
-create_fun_with_arity(4, FunResult) ->
-    fun(_, _, _, _) -> FunResult end;
-create_fun_with_arity(5, FunResult) ->
-    fun(_, _, _, _, _) -> FunResult end;
-create_fun_with_arity(6, FunResult) ->
-    fun(_, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(7, FunResult) ->
-    fun(_, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(8, FunResult) ->
-    fun(_, _, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(9, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(10, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(11, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(12, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(13, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(14, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end;
-create_fun_with_arity(15, FunResult) ->
-    fun(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> FunResult end.
+create_fun_with_arity(Arity, FunResult) ->
+    FunResultStr = code_utils:term_to_string(FunResult),
+    % i.e. for arity 3 create `fun(_,_,_) -> FunResult end.`
+    code_utils:eval_string("fun(" ++ string:join(["_" || _ <- lists:seq(1, Arity)], ",") ++ ") -> " ++ FunResultStr ++ " end.").
 
 unmeck_modules()  ->
     meck:unload().
