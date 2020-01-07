@@ -20,7 +20,6 @@
 -define(MECK_AND_RESET(Module, Funs), ?MECK(Module, Funs), meck:reset(Module)).
 -define(UNMECK, test_utils:unmeck_modules()).
 -define(UNMECK(Module), test_utils:unmeck_module(Module)).
--define(SORT(List), lists:sort(List)).
 
 -define(assertContains(Element, List), begin ((
     fun(E, L) ->
@@ -63,19 +62,12 @@
 
 
 -define(SORT_PROPERTIES_IN_JSON(U), begin((
-    %For me is tricky - i leaved commented lines for better understanding and code review.
         fun
              SSort([FirstTuple | RestOfTuples]) when is_tuple(FirstTuple) ->
-                 %?debugFmt("3 List of many tuples: ~p", [[FirstTuple, RestOfTuples]]),
-                 R = ?SORT(lists:merge([SSort(FirstTuple)], SSort(RestOfTuples))),
-                 %?debugFmt("3 R: ~p", [R]),
-                 R;
+                 lists:sort(lists:merge([SSort(FirstTuple)], SSort(RestOfTuples)));
 
              SSort(ArrayOfElements) when is_list(ArrayOfElements) ->
-                 %?debugFmt("4 List of many elements: ~p", [ArrayOfElements]),
-                 R = [SSort(E) || E <- ArrayOfElements],
-                 %?debugFmt("4 R: ~p", [R]),
-                 R;
+                 [SSort(E) || E <- ArrayOfElements];
 
              SSort({AttrName, AttrValue}) when is_atom(AttrName) ->
                  SSort({atom_to_binary(AttrName, utf8), AttrValue});
@@ -84,18 +76,14 @@
                  SSort({integer_to_binary(AttrName), AttrValue});
 
              SSort({AttrName, AttrValue}) ->
-                 %?debugFmt("5 Tuple: ~p", [{AttrName, AttrValue}]),
-                 R = {AttrName, SSort(AttrValue)},
-                 %?debugFmt("5 R: ~p", [R]),
-                 R;
+                 {AttrName, SSort(AttrValue)};
 
              SSort(Primitive) ->
-                 %?debugFmt("Primitive: ~p", [Primitive]),
                  Primitive
          end
 ))(U)end).
 
--define(assertJson(Expected, Actual), begin ((
+-define(assertJsonEqual(Expected, Actual), begin ((
     fun(E, A) ->
         StripWhitespaces = fun
               (Binary) when is_binary(Binary) ->
@@ -111,8 +99,8 @@
     end
 )(Expected, Actual))end).
 
--define(assertEqualUnordered(Expected, Actual), ?assertEqual(?SORT(Expected), ?SORT(Actual))).
--define(assertNotEqualUnordered(Expected, Actual), ?assertNotEqual(?SORT(Expected), ?SORT(Actual))).
+-define(assertEqualUnordered(Expected, Actual), ?assertEqual(lists:sort(Expected), lists:sort(Actual))).
+-define(assertNotEqualUnordered(Expected, Actual), ?assertNotEqual(lists:sort(Expected), lists:sort(Actual))).
 
 -define(assertCalledOnce(Module, Function, Args), ?assertCalled(1, Module, Function, Args)).
 
