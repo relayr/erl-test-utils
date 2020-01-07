@@ -58,7 +58,7 @@ Assert that all of elements in list `Elems` exist in list of elements `List`.
 #### ?assertNotContains(Elem, List)
 Assert that element `Elem` doesn't exist in list of elements `List`.
 
-#### ?assertJson(Expected, Actual)
+#### ?assertJsonEquals(Expected, Actual)
 Assert that JSON objects are equal. Both of them can be either encoded as a string or decoded to format compatible with [jsx](https://github.com/talentdeficit/jsx).
 
 ## Property based tests generators
