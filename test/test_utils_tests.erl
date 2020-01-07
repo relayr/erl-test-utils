@@ -114,7 +114,7 @@ wait_for_process_stopped_test() ->
 positive_comparision_of_json_test() ->
     JsonA = <<"{\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]],\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]]}">>,
     JsonB = <<"{\"list2\":[10,20,{\"a\":10},[{\"b\":30,\"c\":40}]],\"list1\":[1,2,{\"a\":1},[{\"b\":3,\"c\":4}]]}">>,
-    ?assertJson(JsonA, JsonB).
+    ?assertJsonEqual(JsonA, JsonB).
 
 second_positive_comparision_of_json_test() ->
     JsonC = <<"{
@@ -146,16 +146,16 @@ second_positive_comparision_of_json_test() ->
         ]
     }">>,
     %% [{\"c\":40,\"b\":30}] -> [{\"b\":30,\"c\":40}] should make no difference
-    ?assertJson(JsonC, JsonD).
+    ?assertJsonEqual(JsonC, JsonD).
 
 other_json_sorting_cases_test() ->
     EmptyObjectJson = <<"{\"attributes\":{},\"aaa\":5}">>,
-    ?assertJson(EmptyObjectJson, EmptyObjectJson),
+    ?assertJsonEqual(EmptyObjectJson, EmptyObjectJson),
     EmptyArrayJson = <<"{\"attributes\":[],\"aaa\":5}">>,
-    ?assertJson(EmptyArrayJson, EmptyArrayJson),
+    ?assertJsonEqual(EmptyArrayJson, EmptyArrayJson),
     MixedKeyJsonTerm1 = [{bbb, <<"string">>}, {<<"aaa">>, 15}, {42, true}, {41, false}],
     MixedKeyJsonTerm2 = [{<<"bbb">>, <<"string">>}, {aaa, 15}, {42, true}, {<<"41">>, false}],
-    ?assertJson(MixedKeyJsonTerm1, MixedKeyJsonTerm2).
+    ?assertJsonEqual(MixedKeyJsonTerm1, MixedKeyJsonTerm2).
 
 negative_comparision_of_json_test() ->
     JsonC = <<"[
