@@ -4,7 +4,7 @@
 
 ## Description
 
-Erlang application that can be imported in your project to help in development of unit and property-based tests (using [Proper](https://github.com/proper-testing/proper)).
+Erlang application that can be imported in your project to help in development of unit and property-based tests (using [PropEr](https://github.com/proper-testing/proper)).
 
 To import `test_utils` you need to add it to your rebar.config file e.g.
 ```
