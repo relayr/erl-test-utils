@@ -1,6 +1,6 @@
 {application,test_utils,
     [{description,"Test utilities"},
-        {vsn, "1.0.6"},
+        {vsn, "1.0.7"},
         {licenses,["MIT"]},
         {links,[{"GitHub",
             "https://github.com/relayr/erl-test-utils"}]},
