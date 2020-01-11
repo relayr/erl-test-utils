@@ -183,7 +183,7 @@ meck_function(Module, {FunctionName, Fun}) when is_function(Fun) ->
     meck:expect(Module, FunctionName, Fun);
 meck_function(Module, {FunctionName, FunResult}) ->
     Arities = get_function_arities(Module, FunctionName),
-    _ = [meck:expect(Module, FunctionName, create_fun_with_arity(Arity, FunResult)) || Arity <- Arities],
+    _ = [meck:expect(Module, FunctionName, [{lists:duplicate(Arity, '_'), FunResult}]) || Arity <- Arities],
     ok.
 
 get_function_arities(Module, FunctionName) ->
@@ -195,11 +195,6 @@ get_function_arities(Module, FunctionName) ->
     true ->
         Arities
     end.
-
-create_fun_with_arity(Arity, FunResult) ->
-    FunResultStr = code_utils:term_to_string(FunResult),
-    % i.e. for arity 3 create `fun(_,_,_) -> FunResult end.`
-    code_utils:eval_string("fun(" ++ string:join(["_" || _ <- lists:seq(1, Arity)], ",") ++ ") -> " ++ FunResultStr ++ " end.").
 
 unmeck_modules()  ->
     meck:unload().
