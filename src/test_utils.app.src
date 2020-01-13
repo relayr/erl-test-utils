@@ -5,4 +5,4 @@
         {links,[{"GitHub",
             "https://github.com/relayr/erl-test-utils"}]},
         {registered,[]},
-        {applications,[kernel,stdlib,eunit,meck,proper,code_utils]}]}.
+        {applications,[kernel,stdlib,eunit,meck,proper]}]}.
