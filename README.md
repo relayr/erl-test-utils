@@ -61,6 +61,132 @@ Assert that element `Elem` doesn't exist in list of elements `List`.
 #### ?assertJsonEquals(Expected, Actual)
 Assert that JSON objects are equal. Both of them can be either encoded as a string or decoded to format compatible with [jsx](https://github.com/talentdeficit/jsx).
 
+# Function mock helpers
+Macros described in this section can be used to mock behavior of tested functions using [meck](https://github.com/eproxus/meck) library and assert if tested code was called with expected arguments.
+
+#### ?MECK(Module, Funs)
+
+Mock module `Module` with a list of functions in the following format:
+```
+Funs :: [
+    {FunctionName :: atom(), Fun :: fun()} |
+    {FunctionName :: atom(), FunResult :: any()}
+]
+```
+If mocked function exists and `Fun` with specific arity is used for mocking the result then only function with such arity is mocked.
+
+If function result is the Erlang term `FunResult` then all functions with matching name (no matter what arity) returns this Erlang term.
+If function doesn't exist then function with arity 0 is created and returns function result.
+
+```
+-define(TS, 1563443613000).
+
+?MECK(ts_utils, [
+    {get_os_timestamp, ?TS},
+    {get_os_timestamp, fun
+        (secs) -> ?TS div 1000;
+        (millis) ->?TS
+    end},
+    {convert_timestamp, fun(T) -> T * 1000 end}
+]).
+
+---
+
+1> ts_utils:get_os_timestamp().
+1563443613000
+2> ts_utils:get_os_timestamp(millis).
+1563443613000
+3> ts_utils:get_os_timestamp(secs).
+1563443613
+4> ts_utils:convert_timestamp(1563443781).
+1563443781000
+```
+
+#### ?MECK_LOOP(Module, Funs)
+Mock module `Module` with a list of functions in the following format:
+```
+Funs :: [
+    {FunctionName :: atom(), FunResults :: [any(), ...]}
+]
+```
+Each mocked function result is specified as a list of values to be returned. Values in the list are returned sequentially in consecutive calls to mocked function. If end of the list is reached then values are returned from the beginning of the list again.
+
+```
+-define(TS, 1563443613000).
+
+?MECK(ts_utils, [
+    {get_os_timestamp, [?TS, ?TS + 1000, ?TS + 2000]}
+]).
+
+---
+
+1> ts_utils:get_os_timestamp().
+1563443613000
+2> ts_utils:get_os_timestamp().
+1563443614000
+3> ts_utils:get_os_timestamp().
+1563443615000
+4> ts_utils:get_os_timestamp().
+1563443613000
+```
+
+#### ?assertCalledOnce(Module, Function, Args)
+
+Assert if mocked function was called with specific arguments exactly once. Matchers like `'_'` can be used for matching of the arguments.
+
+```
+?assertCalledOnce(ts_utils, get_os_timestamp, [millis])
+```
+
+If mocked function was not called or was called more than 1 time then the assertion error is returned and outputs history of calls to mocked function.
+
+```
+Failure/Error: ?assertThat("ts_utils:get_os_timestamp(millis) called 1 time(s)")
+  expected: {ts_utils,get_os_timestamp,[millis]}
+       got: [{ts_utils,get_os_timestamp,[secs]},
+             {ts_utils,get_os_timestamp,[millis]},
+             {ts_utils,get_os_timestamp,[millis]}]
+```
+
+#### ?assertNotCalled(Module, Function)
+Assert if mocked function was not called at all.
+```
+?assertNotCalled(ts_utils, get_os_timestamp)
+```
+
+Assertion error is returned if there was a call made to function of any arity.
+```
+Failure/Error: ?assertThat("ts_utils:get_os_timestamp(...) called 0 time(s)")
+  expected: not_called
+       got: [{ts_utils,get_os_timestamp,[]},
+             {ts_utils,get_os_timestamp,[secs]},
+             {ts_utils,get_os_timestamp,[millis]}]
+```
+
+#### ?assertNotCalled(Module, Function, Args)
+
+Assert if mocked function was not called at all with given arguments. Matchers like `'_'` can be used for matching of the arguments.
+
+```
+?assertNotCalled(ts_utils, get_os_timestamp, ['_'])
+```
+
+#### ?assertCalled(NumCalls, Module, Function, Args)
+
+Assert if mocked function was called with specific arguments exactly some given number of times. Matchers like `'_'` can be used for matching of the arguments.
+
+```
+?assertCalled(3, ts_utils, get_os_timestamp, [millis])
+```
+
+#### ?MECK_RESET(Module)
+
+Reset all counters for calls to mocked functions. Counters are used by macros like `?assertCalled` and `?assertNotCalled` for checking function calls.
+
+#### ?UNMECK(Module)
+
+Reset mocks to given modules. If mocks were overwriting existing functions then the default function results are returned back again.
+
 ## Property based tests generators
 
 There's a set of helpful generators defined in `prop_testing.hrl` that can be used in your property based tests.
