@@ -23,7 +23,7 @@
 
 %% Startup
 start() ->
-    start([]).
+    start(#{}).
 
 start(Options) ->
     EunitProgressOptions = maps:get(eunit_progress, Options, ?EUNIT_PROGRESS_OPTIONS),
